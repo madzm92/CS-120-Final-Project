@@ -34,14 +34,13 @@ body {
     padding-bottom: 0.5rem;
 }
 
-.logo {
-    font-size: 1.25rem;
-    font-weight: bold;
+.logo img{
+    width: 75px;
 }
 
 .search-bar input {
-    width: 300px;
-    padding: 1rem 1rem;
+    min-width: 300px;
+    padding: .75rem .75rem;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 0.5rem;
     font-size: 1rem;
@@ -52,17 +51,17 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin: 2.5rem 0;
 }
 
 .section-title {
     font-size: 2rem;
     font-weight: 500;
-    margin-bottom: 2rem;
 }
 
 .view-all {
     color: #3b82f6;
-    font-size: 0.875rem;
+    font-size: 1rem;
     text-decoration: none;
 }
 /* current reading */
@@ -104,8 +103,6 @@ body {
     top: 0;
     background: white;
     z-index: 10;
-    padding: 1rem 0;
-    margin-bottom: 1rem;
     transition: all 0.3s ease;
 }
 .books-grid {
@@ -202,9 +199,37 @@ body {
 /* Menu Toggle */
 .menu-toggle {
     display: block;
-    background: none;
-    border: none;
     cursor: pointer;
+}
+
+.menu-toggle-button {
+    padding: 0.25rem;
+    border-radius: .5rem;
+    border: 1px solid #C3C3C3;
+    background: none;
+}
+
+.footer-box {
+    background-color: #1f2937;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    padding: 1.5rem;
+
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.footer-content1 {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    line-height: 0.75rem;
 }
 
 /* make page scrollable */
