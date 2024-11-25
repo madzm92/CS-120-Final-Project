@@ -1,5 +1,5 @@
 const components = {
-    renderBookCard(book) {
+    renderBookCard(book) {// maybe make a new one for recommendations
         return `
             <div class="book-card">
                 <div class="book-cover">
