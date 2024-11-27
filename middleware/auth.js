@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db/config');
-// 
+// check if user has a valid access token
 const auth = async (req, res, next) => {
     try {
         // extract token from header
@@ -20,7 +20,7 @@ const auth = async (req, res, next) => {
 
         const result = await pool.query(
             'SELECT * FROM user_info WHERE user_id = $1',
-            [decoded.userId]
+            [decoded.user_id]
         );
 
         if (result.rows.length === 0) {
