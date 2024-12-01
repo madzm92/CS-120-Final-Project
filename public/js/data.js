@@ -32,3 +32,41 @@ const sampleData = {
         }))
     ]
 };
+
+
+
+// user data stored here as single source of truth
+const userData = {
+    // filter current reading from library, no need to store seperately
+    library: [
+        {
+            id: 0,
+            title: "",
+            author: "",
+            coverUrl: "", // not sure this will work. Store img in db or load them from web?
+            status: "",  // filter this to show currentreadings
+            publishDate: "",
+            genre: "",
+            description: "",
+            productUrl: "",
+            isbn: "",
+            notes: [] // not sure
+        }
+    ],
+    info: [
+        { id: 1, title: "", content: "" }
+    ],
+    recommendations: [
+        {
+            id: 0,
+            title: "",
+            author: "",
+            coverUrl: "",
+            publishDate: "",
+            genre: "",
+            description: "",
+            productUrl: "",
+            isbn: ""
+        }
+    ]
+}

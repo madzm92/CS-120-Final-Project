@@ -12,13 +12,19 @@ class App {
         //     return;
         // }
         await Promise.all([
-            this.loadLibrary(),
-            this.loadCurrentReading(),
-            this.loadInfo(),
-            this.loadRecommendations(),
+            this.fetchUserLibrary(),
+            this.fetchInfo(),
+            this.fetchRecommendations()
+
         ]);
-        this.setupEventListeners()
+        this.loadLibrary();
+        this.loadCurrentReading();
+        this.loadInfo();
+        this.loadRecommendations();
+        this.setupEventListeners();
     }
+
+
     // refresh access token with refresh token
     async refreshAccessToken() {
         try {
@@ -169,49 +175,78 @@ class App {
         }
     }
 
-    async loadLibrary() {
+
+    
+    // fetch books in library and store in userData
+    async fetchUserLibrary() {
         try {
-            const response = await this.fetchWithAuth('/api/books/library')
-            if (!response) return
+            const response = await this.fetchWithAuth('/api/books/library');
+            if (!response) return;
             
-            const books = await response.json()
-            const container = document.getElementById('libraryContainer')
-            container.innerHTML = books
-                .map(book => components.renderBookCard(book))
-                .join('')
+            const books = await response.json();
+            userData.library = books.map(book => ({
+                id: book.book_id,
+                title: book.book_title,
+                author: book.author,
+                coverUrl: book.book_image,
+                status: book.book_status
+            }));
         } catch (error) {
-            console.error('Error loading library:', error)
+            console.error('Error fetching library:', error);
         }
     }
 
+    // TODO: fetch current reading
+    // if use book-status, then might need to find a way to sort it
+    // async fetchCurrentReading() {
+        
+    // }
 
-    // TODO: load current reading
-    // TODO: load info
-    // TODO: load recommendations
+    // TODO: fetch info. 
+    // If info is not personal, then hard coding is acceptable. Can store in database or not.
+    async fetchInfo() {
 
-    // below is old static code
+    }
+
+    // TODO: fetch recommendations. 
+    // recommend books in database, or outside, or both?
+    // recommendation algo is tricky, maybe use a simple approach
+    async fetchRecommendations() {
+
+    }
+
+
+    loadLibrary() {
+        const container = document.getElementById('libraryContainer');
+        container.innerHTML = userData.library
+            .map(book => components.renderBookCard(book))
+            .join('');
+    }
+
     loadCurrentReading() {
         const container = document.getElementById('currentReadingContainer');
-        container.innerHTML = sampleData.currentReading
+        const currentReading = userData.library.filter(book => book.status === 'reading');// not sure if this is right
+        container.innerHTML = currentReading
             .map(book => components.renderCurrentReading(book))
             .join('');
     }
 
     loadInfo() {
         const container = document.getElementById('infoContainer');
-        container.innerHTML = sampleData.info
+        container.innerHTML = userData.info
             .map(info => components.renderInfoItem(info))
             .join('');
     }
     
     loadRecommendations() {
         const container = document.getElementById('recommendationsContainer');
-        container.innerHTML = sampleData.recommendations
+        container.innerHTML = userData.recommendations
             .map(book => components.renderBookCard(book))
             .join('');
     }
 
     setupEventListeners() {
+        // sidebar toggle event listener
         const menuToggle = document.querySelector('.menu-toggle-button');
         const columnRight = document.querySelector('.column-right');
         
@@ -221,6 +256,17 @@ class App {
                 document.body.style.overflow = columnRight.classList.contains('active') ? 'hidden' : 'auto';
             }
         });
+        // go to book page by clicking book-card or current-reading-card
+        document.addEventListener('click', (e) => {
+            const bookCard = e.target.closest('.book-card, .current-reading-card');
+            if (bookCard) {
+                const bookId = bookCard.dataset.bookId;
+                window.location.href = `/book.html?id=${bookId}`;
+            }
+        });
+        // TODO: search event listener
+
+        // TODO: 
     }
 }
 

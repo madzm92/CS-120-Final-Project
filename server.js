@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config();
 const auth = require("./middleware/auth");
 const app = express();
-app.use(express.json()); // middleware to parse all json requests to req.body
+app.use(express.json()); // middleware to parse all json requests to req
 
 // testing purpose
 app.use(express.static('public'));
@@ -142,8 +142,8 @@ app.get('/api/books/library', auth, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT lg.*, lp.book_status 
-             FROM library_general lg
-             JOIN library_personal lp ON lg.book_id = lp.book_id
+             FROM library_general AS lg
+             JOIN library_personal AS lp ON lg.book_id = lp.book_id
              WHERE lp.user_id = $1`,
             [req.user.user_id]
         );
@@ -154,11 +154,48 @@ app.get('/api/books/library', auth, async (req, res) => {
     }
 })
 
-// TODO: get current reading by adding a 'last-read' field to books
+// fetch certain book in library_general but not in library_user
+app.get('/api/books/general/:id', async (req, res) => {
+    try {
+        const bookId = req.params.id;
+        
+        const result = await pool.query(
+            `SELECT lg.*, 
+                    string_agg(a.author, ', ') AS authors
+             FROM library_general AS lg
+             JOIN authors AS a
+             ON lg.isbn = a.isbn
+             WHERE lg.book_id = $1
+             GROUP BY lg.book_id`,
+            [bookId]
+        );
 
-// TODO: implement info section
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
 
-// TODO: implement recommendation
+        // get review
+        const reviewsResult = await pool.query(
+            `TBD`,
+            [bookId]
+        );
+
+        const bookData = {
+            ...result.rows[0],
+            reviews: reviewsResult.rows
+        };
+
+        res.json(bookData);
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+// TODO: implement info section if info stored in db
+
+// TODO: implement recommendation if recommendation stored in db
 
 
 const PORT = process.env.PORT || 3000;
