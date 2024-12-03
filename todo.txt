@@ -1,41 +1,42 @@
 login page, could be a pop-out window, but seperate page is fine
 register page, same as above
 
-book reviews, not decided yet
+Maddie: book reviews, not decided yet
 
-book page
+Qihang: book page (1/2 pages)
     - there are three states for a book
     - 1. book is library_user
     - 2. book is in library_general but not library_user
     - 3. book is not in database
 
-search function
+Qihang: search function - same as main page, 
     - for books user has, filter library
     - for books in library_general, fetch db then show
     - if not in library_general, need external api, tricky
 search suggestion drop down. similar to above
-    
-book page entrance is book-cards
-    - for books in user library use prefetched data
-    - for book-cards showed in search result:
-        - if in library_general, fetch db
-        - if not in library_general, need external api, tricky
-
-add external book logics
-    - book-card shows in search result -> book page -> add to both user and general library
-    - book shows in search dropdown -> add to both user and general library
-add book to user library similar to above
-
-add token data, info data and recommendation data to database
-    - if applicable
-    
 
 sort fetch current readings. 
     - now we're using book_status is for current reading, maybe need to find a way to sort it
 
 fetch recommendation. should take a simple approach
 
+Phuong - structure of page
 note taking features. need:
     - a note pop-out window, or a note management page
     - add note and show notes in book page
     - should be easy
+
+add token data, info data and recommendation data to database
+    - if applicable
+
+Maddie:
+    add external book logics
+        - book-card shows in search result -> book page -> add to both user and general library
+        - book shows in search dropdown -> add to both user and general library
+    add book to user library similar to above
+
+book page entrance is book-cards
+    - for books in user library use prefetched data
+    - for book-cards showed in search result:
+        - if in library_general, fetch db
+        - if not in library_general, need external api, tricky
