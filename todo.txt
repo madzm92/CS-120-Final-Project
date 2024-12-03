@@ -40,3 +40,7 @@ book page entrance is book-cards
     - for book-cards showed in search result:
         - if in library_general, fetch db
         - if not in library_general, need external api, tricky
+
+
+Some question:  1. review text and value, what is the difference
+                2. review's title and author. What about them?

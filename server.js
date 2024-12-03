@@ -192,6 +192,80 @@ app.get('/api/books/general/:id', async (req, res) => {
     }
 });
 
+// add a book to user library
+app.post('api/books/library', auth, async (req, res) => {
+    try {
+        const book = req.body.book;
+        // First check if book exists in library_general
+        const bookExists = await pool.query(
+            'SELECT * FROM library_general WHERE book_id = $1',
+            [book.id]
+        );
+        if (bookExists.rows.length === 0) {
+            // not in library_general, then it's a external book
+            // MIGHTDO: handle external book, add it to library_general
+            await pool.query(
+                'TBD'
+            )
+            // if not handle external book, do this
+            res.status(404).json({ message: "Book not found in our database" });
+        }
+
+        // Add to library_personal
+        // TODO: check for correctness
+        await pool.query(
+            'INSERT INTO library_personal (user_id, book_id, book_status) VALUES ($1, $2, $3)',
+            [req.user.user_id, book.id, "plan_to_read"]
+        );
+        res.status(201).json({ message: 'Book added to library successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+// change reading status of a book
+
+app.put('api/books/status', auth, async (req, res) => {
+    try {
+        const { bookId, newStatus } = req.body;
+        const result = await pool.query(// TODO: check for correctness
+            'UPDATE library_personal SET book_status = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+            [newStatus, req.user.user_id, bookId]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Book not found in your library' });
+        }
+        res.json({ message: 'Status updated successfully' });
+
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }   
+    
+})
+
+// change user's review on this book
+app.put('/api/books/review', auth, async (req, res) => {
+    try {
+        const { bookId, review } = req.body;
+        const result = await pool.query(// TODO: check for correctness
+            'UPDATE library_personal SET review = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+            [review, req.user.user_id, bookId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Book not found in your library' });
+        }
+
+        res.json({ message: 'Review updated successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// TODO: add a note to current book
 
 // TODO: implement info section if info stored in db
 

@@ -1,3 +1,4 @@
+import utils from "./Utils";
 class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
@@ -22,66 +23,6 @@ class App {
         this.loadInfo();
         this.loadRecommendations();
         this.setupEventListeners();
-    }
-
-
-    // refresh access token with refresh token
-    async refreshAccessToken() {
-        try {
-            const response = await fetch('/api/token/refresh', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ refreshToken: this.refreshToken })
-            })
-
-            if (!response.ok) {
-                throw new Error('Refresh token failed');
-            }
-
-            const data = await response.json()
-            localStorage.setItem('accessToken', data.accessToken)
-            this.accessToken = data.accessToken
-            return true
-        } catch (error) {
-            console.error('Token refresh failed:', error)
-            return false
-        }
-    }
-    
-    // sending requests with authentication
-    async fetchWithAuth(url, options = {}) {
-        try {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': `Bearer ${this.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            if (response.status === 401) {
-                // Try to refresh the token
-                const refreshed = await this.refreshAccessToken()
-                if (refreshed) {
-                    // Retry the original request with new token
-                    return this.fetchWithAuth(url, options)
-                } else {
-                    // Refresh failed, redirect to login
-                    localStorage.removeItem('accessToken')
-                    localStorage.removeItem('refreshToken')
-                    window.location.href = '/login.html'
-                    return null
-                }
-            }
-
-            return response;
-        } catch (error) {
-            console.error('Fetch error:', error)
-            throw error
-        }
     }
 
 
@@ -152,7 +93,7 @@ class App {
     // user logout
     async logout() {
         try {
-            const response = await this.fetchWithAuth('/api/user/logout', {
+            const response = await utils.fetchWithAuth('/api/user/logout', {
                 method: 'POST',
                 body: JSON.stringify({ refreshToken: this.refreshToken })
             })
@@ -180,7 +121,7 @@ class App {
     // fetch books in library and store in userData
     async fetchUserLibrary() {
         try {
-            const response = await this.fetchWithAuth('/api/books/library');
+            const response = await utils.fetchWithAuth('/api/books/library');
             if (!response) return;
             
             const books = await response.json();
@@ -189,7 +130,9 @@ class App {
                 title: book.book_title,
                 author: book.author,
                 coverUrl: book.book_image,
-                status: book.book_status
+                status: book.book_status,
+                userReview: book.review,
+                externalReviews: book.books_reviews
             }));
         } catch (error) {
             console.error('Error fetching library:', error);

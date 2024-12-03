@@ -212,3 +212,19 @@ body {
     flex: 1;
     overflow-y: auto;
 }
+
+/* change reading status */
+.reading-status-container {
+    margin: 10px 0;
+    font-family: Arial, sans-serif;
+}
+
+.reading-status-container label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#readingStatus {
+    padding: 5px;
+    font-size: 14px;
+}
