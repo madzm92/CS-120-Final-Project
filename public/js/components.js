@@ -1,7 +1,7 @@
 const components = {
     renderBookCard(book) {// maybe make a new one for recommendations
         return `
-            <div class="book-card">
+            <div class="book-card" data-book-id="${book.id}">
                 <div class="book-cover">
                    <img src="${book.coverUrl}" alt="${book.title}">
                 </div>
@@ -14,7 +14,7 @@ const components = {
 
     renderCurrentReading(book) {
         return `
-            <div class="current-reading-card">
+            <div class="current-reading-card" data-book-id="${book.id}">
                 <div class="current-reading-cover">
                     <img src="${book.coverUrl}" alt="${book.title}" loading="lazy">
                 </div>
