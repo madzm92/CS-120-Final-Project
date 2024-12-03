@@ -6,7 +6,7 @@ body {
 
 @font-face {
     font-family: 'SF Pro';
-    src: url(files/SF-Pro.ttf);
+    src: url(SF-Pro.ttf);
 }
 
 .homepage {
@@ -31,27 +31,28 @@ body {
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+    padding: 1rem;
 }
 
-.logo img{
-    width: 75px;
+.logo {
+    font-size: 1.25rem;
+    font-weight: bold;
 }
 
-.search-bar input {
-    min-width: 300px;
-    padding: .75rem .75rem;
+.search-bar input{
+    width: 300px;
+    padding: 1rem;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
+    border-radius: 20px;
     font-size: 1rem;
 }
+
 
 /* Sections */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 2.5rem 0;
 }
 
 .section-title {
@@ -61,7 +62,7 @@ body {
 
 .view-all {
     color: #3b82f6;
-    font-size: 1rem;
+    font-size: 0.875rem;
     text-decoration: none;
 }
 /* current reading */
@@ -74,7 +75,7 @@ body {
     overflow: auto;
     display: flex;
     gap: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding: 1.25rem 0;
 
 }
 
@@ -98,14 +99,17 @@ body {
 }
 
 /* library */
-.library .section-header {
+/* .library .section-header {
     position: sticky;
     top: 0;
     background: white;
     z-index: 10;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
     transition: all 0.3s ease;
-}
+} */
 .books-grid {
+    padding: 1.25rem 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 2rem;
@@ -158,7 +162,7 @@ body {
 
 .column-right.active {
     width: 25%;
-    background: #1f2937;
+    background: #505050;
     color: white;
     padding: 1.75rem;
     height: 100%;
@@ -171,7 +175,7 @@ body {
         right: 0;
         top: 0;
         width: 60%;
-        background: #1f2937;
+        background: #505050;
         color: white;
         padding: 1.5rem;
         height: 100%;
@@ -191,6 +195,7 @@ body {
 }
 
 .recommendations-grid {
+    padding: 1.25rem 0;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -198,38 +203,17 @@ body {
 
 /* Menu Toggle */
 .menu-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
     cursor: pointer;
 }
 
 .menu-toggle-button {
-    padding: 0.25rem;
-    border-radius: .5rem;
-    border: 1px solid #C3C3C3;
-    background: none;
-}
-
-.footer-box {
-    background-color: #1f2937;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    padding: 1.5rem;
-
-}
-
-.footer-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.footer-content1 {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    line-height: 0.75rem;
+    background-color: #FFFFFF;
+    border: none;
 }
 
 /* make page scrollable */
