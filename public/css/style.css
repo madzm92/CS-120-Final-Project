@@ -213,6 +213,40 @@ body {
     overflow-y: auto;
 }
 
+/* search related */
+.search-results {
+    padding: 20px;
+}
+
+.search-header {
+    margin-bottom: 20px;
+}
+
+.back-to-library {
+    padding: 8px 16px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.back-to-library:hover {
+    background-color: #2563eb;
+}
+
+.personal-results,
+.general-results {
+    margin-bottom: 30px;
+}
+
+.search-results h2 {
+    margin-bottom: 15px;
+    color: #1f2937;
+}
+
+/* Below is Book page */
+
 /* change reading status */
 .reading-status-container {
     margin: 10px 0;

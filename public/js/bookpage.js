@@ -186,7 +186,7 @@ class BookPage {
                 }
 
                 // success then update
-                loadUserReview();
+                this.loadUserReview();
 
                 Swal.fire('Success', 'Your review has been updated!', 'success');
             } catch (error) {
@@ -196,6 +196,7 @@ class BookPage {
         }
     }
     
+    // TODO: implement add note
     async addNote() {
 
     }
