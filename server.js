@@ -35,8 +35,8 @@ app.post('/api/user/login', async (req, res) => {
                 { user_id: user.user_id },
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '5h' }
-            )
-            // create jwt refresh token
+            );
+
             const refreshToken = jwt.sign(
                 { user_id: user.user_id },
                 process.env.REFRESH_TOKEN_SECRET,
@@ -51,9 +51,9 @@ app.post('/api/user/login', async (req, res) => {
                 message: 'Login successful',
                 accessToken,
                 refreshToken
-            })
+            });
         } else {
-            res.status(401).json({ message: 'Invalid username or password' })
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
     } catch (error) {
         console.error('Database error:', error);
@@ -137,9 +137,10 @@ app.post('/api/user/register', async (req, res) => {
 app.get('/api/books/library', auth, async (req, res) => {
     try {
         const result = await pool.queryPromise(
-            `SELECT lg.*, lp.book_status 
+            `SELECT lg.*, lp.book_status, lp.review , a.author_name
              FROM library_general AS lg
              JOIN library_personal AS lp ON lg.book_id = lp.book_id
+             JOIN authors as a ON lg.isbn = a.isbn
              WHERE lp.user_id = ?`,
             [req.user.user_id]
         );
