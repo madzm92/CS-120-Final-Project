@@ -1,4 +1,5 @@
-import utils from "./Utils";
+import utilsObj from "./utilsObj.js";
+
 class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
@@ -9,7 +10,10 @@ class App {
     async init() {
         // uncomment later when login page implemented
         if (!this.accessToken) {
-            window.location.href = '/login.html';
+            if ((window.location.pathname !== '/login.html') && (window.location.pathname !== '/register.html')) {
+                window.location.href = '/login.html';
+            }
+            console.log("no accessToken")
             return;
         }
         await Promise.all([
@@ -29,12 +33,15 @@ class App {
     // user login
     async login(username, password) {
         try {
+            console.log("username and password in app.js")
+            console.log(username)
+            console.log(password)
             const response = await fetch('/api/user/login', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: json.stringify({ username, password })
+                body: JSON.stringify({ username, password})
             })
             if (!response.ok) {
                 const err = await response.json();
@@ -42,7 +49,8 @@ class App {
                 alert(`Login failed: ${err.message}`)
                 return
             }
-            const data = response.json()
+            const data = await response.json();  // Use await to get the response data
+            console.log(data);
             console.log("Login successful: ", data)
             // save tokens to client
             this.accessToken = data.accessToken
@@ -89,7 +97,7 @@ class App {
     // user logout
     async logout() {
         try {
-            const response = await utils.fetchWithAuth('/api/user/logout', {
+            const response = await utilsObj.fetchWithAuth('/api/user/logout', {
                 method: 'POST',
                 body: JSON.stringify({ refreshToken: this.refreshToken })
             })
@@ -117,19 +125,20 @@ class App {
     // fetch books in library and store in userData
     async fetchUserLibrary() {
         try {
-            const response = await utils.fetchWithAuth('/api/books/library');
+            const response = await utilsObj.fetchWithAuth('/api/books/library');
             if (!response) return;
-            
+            console.log("Data has been fetched");
             const books = await response.json();
             userData.library = books.map(book => ({
                 id: book.book_id,
                 title: book.book_title,
-                author: book.author,
+                author: book.author_name,
                 coverUrl: book.book_image,
                 status: book.book_status,
                 userReview: book.review,
-                externalReviews: book.books_reviews
+                // externalReviews: book.books_reviews
             }));
+            console.log("Data has been set to userData.library");
         } catch (error) {
             console.error('Error fetching library:', error);
         }
@@ -151,7 +160,7 @@ class App {
     // search book
     async searchBooks(searchTerm) {
         try {
-            const response = await utils.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
+            const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response.ok) {
                 throw new Error('Search failed');
             }
