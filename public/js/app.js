@@ -1,67 +1,73 @@
-import utilsObj from "./utilsObj.js";
-
-class App {
+import utils from "./Utils.js";
+export class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        this.init();
+        
+        // Only initialize if we're not on login or register page
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login.html' && currentPath !== '/register.html') {
+            this.init();
+        }
     }
 
     async init() {
-        // uncomment later when login page implemented
         if (!this.accessToken) {
-            if ((window.location.pathname !== '/login.html') && (window.location.pathname !== '/register.html')) {
-                window.location.href = '/login.html';
-            }
-            console.log("no accessToken")
+            window.location.href = '/login.html';
             return;
         }
-        await Promise.all([
-            this.fetchUserLibrary(),
-            this.fetchInfo(),
-            this.fetchRecommendations()
-
-        ]);
-        this.loadLibrary();
-        this.loadCurrentReading();
-        this.loadInfo();
-        this.loadRecommendations();
-        this.setupEventListeners();
+        try {
+            await Promise.all([
+                this.fetchUserLibrary(),
+                this.fetchInfo(),
+                this.fetchRecommendations()
+            ]);
+            this.loadLibrary();
+            this.loadCurrentReading();
+            this.loadInfo();
+            this.loadRecommendations();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            // If there's an auth error during initialization, redirect to login
+            if (error.status === 401) {
+                window.location.href = '/login.html';
+            }
+        }
     }
-
 
     // user login
     async login(username, password) {
         try {
-            console.log("username and password in app.js")
-            console.log(username)
-            console.log(password)
             const response = await fetch('/api/user/login', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password})
-            })
+                body: JSON.stringify({ username, password })
+            });
+            
             if (!response.ok) {
                 const err = await response.json();
-                console.error("Login failed: ", err.message)
-                alert(`Login failed: ${err.message}`)
-                return
+                console.error("Login failed: ", err.message);
+                alert(`Login failed: ${err.message}`);
+                return;
             }
-            const data = await response.json();  // Use await to get the response data
-            console.log(data);
-            console.log("Login successful: ", data)
+            
+            const data = await response.json();
+            console.log("Login successful: ", data);
+            
             // save tokens to client
-            this.accessToken = data.accessToken
-            this.refreshToken = data.refreshToken
-            localStorage.setItem('accessToken', this.accessToken)
-            localStorage.setItem('refreshToken', this.refreshToken)
-            // go to main page
-            window.location.href = '/index.html'
+            this.accessToken = data.accessToken;
+            this.refreshToken = data.refreshToken;
+            localStorage.setItem('accessToken', this.accessToken);
+            localStorage.setItem('refreshToken', this.refreshToken);
+            
+            // Redirect to home page after successful login
+            window.location.href = '/';
         } catch (error) {
-            console.error('Error during login request:', error)
-            alert('An error occurred. Please try again.')
+            console.error('Error during login request:', error);
+            alert('An error occurred. Please try again.');
         }
     }
 
@@ -97,7 +103,7 @@ class App {
     // user logout
     async logout() {
         try {
-            const response = await utilsObj.fetchWithAuth('/api/user/logout', {
+            const response = await utils.fetchWithAuth('/api/user/logout', {
                 method: 'POST',
                 body: JSON.stringify({ refreshToken: this.refreshToken })
             })
@@ -125,20 +131,19 @@ class App {
     // fetch books in library and store in userData
     async fetchUserLibrary() {
         try {
-            const response = await utilsObj.fetchWithAuth('/api/books/library');
+            const response = await utils.fetchWithAuth('/api/books/library');
             if (!response) return;
-            console.log("Data has been fetched");
+            
             const books = await response.json();
             userData.library = books.map(book => ({
                 id: book.book_id,
                 title: book.book_title,
-                author: book.author_name,
+                author: book.author,
                 coverUrl: book.book_image,
                 status: book.book_status,
                 userReview: book.review,
-                // externalReviews: book.books_reviews
+                externalReviews: book.books_reviews
             }));
-            console.log("Data has been set to userData.library");
         } catch (error) {
             console.error('Error fetching library:', error);
         }
@@ -160,7 +165,7 @@ class App {
     // search book
     async searchBooks(searchTerm) {
         try {
-            const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
+            const response = await utils.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response.ok) {
                 throw new Error('Search failed');
             }
@@ -280,5 +285,3 @@ class App {
 document.addEventListener('DOMContentLoaded', () => {
     new App();
 });
-
-export default App;
