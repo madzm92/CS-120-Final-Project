@@ -25,14 +25,17 @@
             <p>Don't have an account? <a href="/register.html">Register</a></p>
         </div>
     </div>
-    <script type="module" src="/js/app.js"></script>
-    <script>
-        const app = new App();
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            await app.login(username, password);
+    <script type="module">
+        import App from './js/app.js'; // Import the App class
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new App();  // Instantiate the app here
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                await app.login(username, password);  // Perform login
+            });
         });
     </script>
 </body>
