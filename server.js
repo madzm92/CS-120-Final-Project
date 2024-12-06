@@ -1,8 +1,8 @@
+require('dotenv').config();
 const pool = require("./db/config");
 const bcrypt = require("bcrypt");
 const express = require("express");
 const jwt = require("jsonwebtoken")
-require("dotenv").config();
 const auth = require("./middleware/auth");
 const app = express();
 app.use(express.json()); // middleware to parse all json requests to req
