@@ -1,13 +1,10 @@
-class utilsObj {
+class Utils {
     constructor() {
-        console.log("in utilsObj constructor")
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        console.log("set variables")
     }
 
     async fetchWithAuth(url, options = {}) {
-        console.log("in fetchWithAuth")
         try {
             const response = await fetch(url, {
                 ...options,
@@ -21,7 +18,6 @@ class utilsObj {
             if (response.status === 401) {
                 // Try to refresh the token
                 const refreshed = await this.refreshAccessToken();
-                console.log("refreshAccessToken has been called")
                 if (refreshed) {
                     // Retry the original request with new token
                     return this.fetchWithAuth(url, options);
@@ -66,4 +62,4 @@ class utilsObj {
     }
 }
 
-export default new utilsObj();
+export default new Utils();

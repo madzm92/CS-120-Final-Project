@@ -10,12 +10,16 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
     connectionLimit: 5
-  });
+});
 
-  pool.getConnection((err, connection) => {
-    if (err) throw err;
-    console.log('Connected to the database.');
-    connection.release(); // Release the connection back to the pool
-  });
+// Promisify pool query to use async/await
+pool.queryPromise = function (sql, values) {
+    return new Promise((resolve, reject) => {
+        pool.query(sql, values, (error, results) => {
+            if (error) reject(error);
+            resolve(results);
+        });
+    });
+};
 
-  module.exports = pool;
+module.exports = pool;

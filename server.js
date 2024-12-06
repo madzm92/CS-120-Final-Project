@@ -21,62 +21,39 @@ app.post('/api/user/login', async (req, res) => {
         return res.status(400).json({ message: 'Username and password are required' });
     }
     try {
-        // Convert the query to a promise to work with async/await
-        const result = await new Promise((resolve, reject) => {
-            pool.query(
-                'SELECT * FROM user_info WHERE LOWER(username) = LOWER(?)',
-                [username],
-                (err, rows) => {
-                    if (err) {
-                        reject(err);  // Reject promise if query fails
-                    } else {
-                        resolve(rows);  // Resolve promise with query result
-                    }
-                }
-            );
-        });
-
+        const result = await pool.queryPromise(
+            'SELECT * FROM user_info WHERE username = ?',
+            [username]
+        );
         if (result.length === 0) {
-            return res.status(401).json({ message: 'User does not exist' });
+            return res.status(401).json({ message: 'User does not exist' })
         }
-
-        const user = result[0]; // First row (user data)
-        console.log('User data:', user);
-
-        hashedPassword = await bcrypt.hash(password, 10)
-
-        // Now you can proceed with bcrypt comparison
-        const isPasswordCorrect = await bcrypt.compare(password,hashedPassword);
-        console.log(password)
-        console.log(user.password)
-        console.log(isPasswordCorrect)
-        if (isPasswordCorrect) {
-            // Create JWT access and refresh tokens
+        if (await bcrypt.compare(password, result[0].password)) {
+            const user = result[0]
+            // create jwt access token
             const accessToken = jwt.sign(
                 { user_id: user.user_id },
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '5h' }
-            );
-
+            )
+            // create jwt refresh token
             const refreshToken = jwt.sign(
                 { user_id: user.user_id },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: '7d' }
-            );
-
-            // Store refresh token in the database
-            // await pool.query(
-            //     'INSERT INTO refresh_tokens (user_id, refresh_token, expires_at) VALUES ($1, $2, NOW() + INTERVAL \'7 days\')',
-            //     [user.user_id, refreshToken]
-            // );
-
-            res.json({
+            )
+            // store refresh token in database
+            await pool.queryPromise(
+                'INSERT INTO refresh_tokens (user_id, refresh_token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))',
+                [user.user_id, refreshToken]
+            )
+            res.json({ 
                 message: 'Login successful',
                 accessToken,
                 refreshToken
-            });
+            })
         } else {
-            return res.status(401).json({ message: 'Invalid username or password' });
+            res.status(401).json({ message: 'Invalid username or password' })
         }
     } catch (error) {
         console.error('Database error:', error);
@@ -93,11 +70,11 @@ app.post('/api/token/refresh', async (req, res) => {
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
         // check if refresh token is valid in database
-        const result = await pool.query(
-            'SELECT * FROM refresh_tokens WHERE refresh_token = $1 AND user_id = $2 AND expires_at > NOW()',
+        const result = await pool.queryPromise(
+            'SELECT * FROM refresh_tokens WHERE refresh_token = ? AND user_id = ? AND expires_at > NOW()',
             [refreshToken, decoded.user_id]
         );
-        if (result.rows.length === 0) {
+        if (result.length === 0) {
             return res.status(403).json({ message: 'Invalid refresh token' });
         }
         // refresh access token
@@ -117,8 +94,8 @@ app.post('/api/token/refresh', async (req, res) => {
 app.post('/api/user/logout', auth, async (req, res) => {
     try {
         const refreshToken = req.body.refreshToken
-        await pool.query(
-            'DELETE FROM refresh_tokens WHERE refresh_token = $1',
+        await pool.queryPromise(
+            'DELETE FROM refresh_tokens WHERE refresh_token = ?',
             [refreshToken]
         )
         res.json({ message: 'Logged out successfully' })
@@ -136,20 +113,20 @@ app.post('/api/user/register', async (req, res) => {
     }
     try {
         // Check if username already exists
-        const existingUser = await pool.query(
-            'SELECT * FROM user_info WHERE username = $1',
+        const existingUser = await pool.queryPromise(
+            'SELECT * FROM user_info WHERE username = ?',
             [username]
         );
-        if (existingUser.rows.length > 0) {
+        if (existingUser.length > 0) {
             return res.status(400).json({ message: 'Username already exists' });
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        // not sure this is correct 
-        const user = await pool.query(
-            'INSERT INTO user_info (username, password) VALUES ($1, $2) RETURNING *',
+        // Create new user
+        const result = await pool.queryPromise(
+            'INSERT INTO user_info (username, password) VALUES (?, ?)',
             [username, hashedPassword]
-        )
-        res.status(201).json({ message: 'User created successfully' })
+        );
+        res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
         console.error('Database error:', error)
         res.status(500).json({ message: 'Internal server error' })
@@ -159,15 +136,14 @@ app.post('/api/user/register', async (req, res) => {
 // get user's library
 app.get('/api/books/library', auth, async (req, res) => {
     try {
-        const result = await pool.query(
-            `SELECT lg.book_id, lg.book_title, a.author_name, lg.book_image, lp.book_status, lp.review
-            FROM library_general AS lg
-            JOIN library_personal AS lp ON lg.book_id = lp.book_id
-            JOIN authors as a ON lg.isbn = a.isbn
-            WHERE lp.user_id = $1;`
+        const result = await pool.queryPromise(
+            `SELECT lg.*, lp.book_status 
+             FROM library_general AS lg
+             JOIN library_personal AS lp ON lg.book_id = lp.book_id
+             WHERE lp.user_id = ?`,
             [req.user.user_id]
         );
-        res.json(result.rows)
+        res.json(result)
     } catch (error) {
         console.error('Database error:', error)
         res.status(500).json({ message: 'Internal server error' })
@@ -179,30 +155,30 @@ app.get('/api/books/general/:id', async (req, res) => {
     try {
         const bookId = req.params.id;
         
-        const result = await pool.query(
+        const result = await pool.queryPromise(
             `SELECT lg.*, 
-                    string_agg(a.author, ', ') AS authors
+                    GROUP_CONCAT(a.author SEPARATOR ', ') AS authors
              FROM library_general AS lg
              JOIN authors AS a
              ON lg.isbn = a.isbn
-             WHERE lg.book_id = $1
+             WHERE lg.book_id = ?
              GROUP BY lg.book_id`,
             [bookId]
         );
 
-        if (result.rows.length === 0) {
+        if (result.length === 0) {
             return res.status(404).json({ message: 'Book not found' });
         }
 
         // get review
-        const reviewsResult = await pool.query(
+        const reviewsResult = await pool.queryPromise(
             `TBD`,
             [bookId]
         );
 
         const bookData = {
-            ...result.rows[0],
-            reviews: reviewsResult.rows
+            ...result[0],
+            reviews: reviewsResult
         };
 
         res.json(bookData);

@@ -1,4 +1,4 @@
-import utilsObj from "./utilsObj";
+import utils from "./Utils";
 import Swal from 'sweetalert2';
 
 class BookPage {
@@ -111,7 +111,7 @@ class BookPage {
     // request for add new book to user's library
     async addToUserLibrary() {
         try {
-            const response = await utilsObj.fetchWithAuth('/api/books/library', {
+            const response = await utils.fetchWithAuth('/api/books/library', {
                 method: 'POST',
                 body: JSON.stringify({
                     book: this.bookData,
@@ -134,7 +134,7 @@ class BookPage {
     // request for change reading status
     async changeReadingStatus(newStatus) {
         try {
-            const response = await utilsObj.fetchWithAuth('/api/books/status', {
+            const response = await utils.fetchWithAuth('/api/books/status', {
                 method: 'PUT',
                 body: JSON.stringify({
                     bookId: this.bookId,
@@ -173,7 +173,7 @@ class BookPage {
 
         if (newReview !== undefined) { // clicked save button
             try {
-                const response = await utilsObj.fetchWithAuth('/api/books/review', {
+                const response = await utils.fetchWithAuth('/api/books/review', {
                     method: 'PUT',
                     body: JSON.stringify({
                         bookId: this.bookId,

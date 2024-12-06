@@ -26,16 +26,13 @@
         </div>
     </div>
     <script type="module">
-        import App from './js/app.js'; // Import the App class
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const app = new App();  // Instantiate the app here
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                await app.login(username, password);  // Perform login
-            });
+        import { App } from '/js/app.js';
+        const app = new App();
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            await app.login(username, password);
         });
     </script>
 </body>
