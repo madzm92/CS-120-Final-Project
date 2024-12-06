@@ -1,4 +1,5 @@
-import utils from "./Utils.js";
+import utilsObj from "./utilsObj.js.js";
+
 import { userData } from './data.js';
 
 export class App {
@@ -15,7 +16,10 @@ export class App {
 
     async init() {
         if (!this.accessToken) {
-            window.location.href = '/login.html';
+            if ((window.location.pathname !== '/login.html') && (window.location.pathname !== '/register.html')) {
+                window.location.href = '/login.html';
+            }
+            console.log("no accessToken")
             return;
         }
         try {
@@ -41,6 +45,9 @@ export class App {
     // user login
     async login(username, password) {
         try {
+            console.log("username and password in app.js")
+            console.log(username)
+            console.log(password)
             const response = await fetch('/api/user/login', {
                 method: "POST",
                 headers: {
@@ -105,7 +112,7 @@ export class App {
     // user logout
     async logout() {
         try {
-            const response = await utils.fetchWithAuth('/api/user/logout', {
+            const response = await utilsObj.fetchWithAuth('/api/user/logout', {
                 method: 'POST',
                 body: JSON.stringify({ refreshToken: this.refreshToken })
             })
@@ -133,19 +140,20 @@ export class App {
     // fetch books in library and store in userData
     async fetchUserLibrary() {
         try {
-            const response = await utils.fetchWithAuth('/api/books/library');
+            const response = await utilsObj.fetchWithAuth('/api/books/library');
             if (!response) return;
-            
+            console.log("Data has been fetched");
             const books = await response.json();
             userData.library = books.map(book => ({
                 id: book.book_id,
                 title: book.book_title,
-                author: book.author,
+                author: book.author_name,
                 coverUrl: book.book_image,
                 status: book.book_status,
                 userReview: book.review,
-                externalReviews: book.books_reviews
+                // externalReviews: book.books_reviews
             }));
+            console.log("Data has been set to userData.library");
         } catch (error) {
             console.error('Error fetching library:', error);
         }
@@ -167,7 +175,7 @@ export class App {
     // search book
     async searchBooks(searchTerm) {
         try {
-            const response = await utils.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
+            const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response.ok) {
                 throw new Error('Search failed');
             }
