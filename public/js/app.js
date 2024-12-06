@@ -1,30 +1,40 @@
-import utils from "./Utils";
-class App {
+import utils from "./Utils.js";
+export class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        this.init();
+        
+        // Only initialize if we're not on login or register page
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login.html' && currentPath !== '/register.html') {
+            this.init();
+        }
     }
 
     async init() {
-        // uncomment later when login page implemented
         if (!this.accessToken) {
             window.location.href = '/login.html';
             return;
         }
-        await Promise.all([
-            this.fetchUserLibrary(),
-            this.fetchInfo(),
-            this.fetchRecommendations()
-
-        ]);
-        this.loadLibrary();
-        this.loadCurrentReading();
-        this.loadInfo();
-        this.loadRecommendations();
-        this.setupEventListeners();
+        try {
+            await Promise.all([
+                this.fetchUserLibrary(),
+                this.fetchInfo(),
+                this.fetchRecommendations()
+            ]);
+            this.loadLibrary();
+            this.loadCurrentReading();
+            this.loadInfo();
+            this.loadRecommendations();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            // If there's an auth error during initialization, redirect to login
+            if (error.status === 401) {
+                window.location.href = '/login.html';
+            }
+        }
     }
-
 
     // user login
     async login(username, password) {
@@ -34,26 +44,30 @@ class App {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: json.stringify({ username, password })
-            })
+                body: JSON.stringify({ username, password })
+            });
+            
             if (!response.ok) {
                 const err = await response.json();
-                console.error("Login failed: ", err.message)
-                alert(`Login failed: ${err.message}`)
-                return
+                console.error("Login failed: ", err.message);
+                alert(`Login failed: ${err.message}`);
+                return;
             }
-            const data = response.json()
-            console.log("Login successful: ", data)
+            
+            const data = await response.json();
+            console.log("Login successful: ", data);
+            
             // save tokens to client
-            this.accessToken = data.accessToken
-            this.refreshToken = data.refreshToken
-            localStorage.setItem('accessToken', this.accessToken)
-            localStorage.setItem('refreshToken', this.refreshToken)
-            // go to main page
-            window.location.href = '/index.html'
+            this.accessToken = data.accessToken;
+            this.refreshToken = data.refreshToken;
+            localStorage.setItem('accessToken', this.accessToken);
+            localStorage.setItem('refreshToken', this.refreshToken);
+            
+            // Redirect to home page after successful login
+            window.location.href = '/';
         } catch (error) {
-            console.error('Error during login request:', error)
-            alert('An error occurred. Please try again.')
+            console.error('Error during login request:', error);
+            alert('An error occurred. Please try again.');
         }
     }
 
@@ -271,5 +285,3 @@ class App {
 document.addEventListener('DOMContentLoaded', () => {
     new App();
 });
-
-export default App;
