@@ -6,7 +6,7 @@ body {
 
 @font-face {
     font-family: 'SF Pro';
-    src: url(files/SF-Pro.ttf);
+    src: url(SF-Pro.ttf);
 }
 
 .homepage {
@@ -31,7 +31,7 @@ body {
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+    padding: 1rem;
 }
 
 .logo {
@@ -39,13 +39,14 @@ body {
     font-weight: bold;
 }
 
-.search-bar input {
+.search-bar input{
     width: 300px;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
+    border-radius: 20px;
     font-size: 1rem;
 }
+
 
 /* Sections */
 .section-header {
@@ -57,7 +58,6 @@ body {
 .section-title {
     font-size: 2rem;
     font-weight: 500;
-    margin-bottom: 2rem;
 }
 
 .view-all {
@@ -75,7 +75,7 @@ body {
     overflow: auto;
     display: flex;
     gap: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding: 1.25rem 0;
 
 }
 
@@ -99,7 +99,7 @@ body {
 }
 
 /* library */
-.library .section-header {
+/* .library .section-header {
     position: sticky;
     top: 0;
     background: white;
@@ -107,8 +107,9 @@ body {
     padding: 1rem 0;
     margin-bottom: 1rem;
     transition: all 0.3s ease;
-}
+} */
 .books-grid {
+    padding: 1.25rem 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 2rem;
@@ -161,7 +162,7 @@ body {
 
 .column-right.active {
     width: 25%;
-    background: #1f2937;
+    background: #505050;
     color: white;
     padding: 1.75rem;
     height: 100%;
@@ -174,7 +175,7 @@ body {
         right: 0;
         top: 0;
         width: 60%;
-        background: #1f2937;
+        background: #505050;
         color: white;
         padding: 1.5rem;
         height: 100%;
@@ -194,6 +195,7 @@ body {
 }
 
 .recommendations-grid {
+    padding: 1.25rem 0;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -201,10 +203,17 @@ body {
 
 /* Menu Toggle */
 .menu-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     cursor: pointer;
+}
+
+.menu-toggle-button {
+    background-color: #FFFFFF;
+    border: none;
 }
 
 /* make page scrollable */
