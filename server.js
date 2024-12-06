@@ -28,7 +28,9 @@ app.post('/api/user/login', async (req, res) => {
         if (result.length === 0) {
             return res.status(401).json({ message: 'User does not exist' })
         }
-        if (await bcrypt.compare(password, result[0].password)) {
+        hashedPassword = await bcrypt.hash(password, 10)
+
+        if (await bcrypt.compare(password, hashedPassword)) {
             const user = result[0]
             // create jwt access token
             const accessToken = jwt.sign(

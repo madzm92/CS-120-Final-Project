@@ -1,4 +1,4 @@
-import utilsObj from "./utilsObj.js.js";
+import utilsObj from "./utilsObj.js";
 
 import { userData } from './data.js';
 
