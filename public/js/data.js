@@ -50,6 +50,8 @@ const userData = {
             description: "",
             productUrl: "",
             isbn: "",
+            userReview: "",
+            externalReviews: [],
             notes: [] // not sure
         }
     ],

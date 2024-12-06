@@ -1,3 +1,4 @@
+import utils from "./Utils";
 class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
@@ -7,10 +8,10 @@ class App {
 
     async init() {
         // uncomment later when login page implemented
-        // if (!this.accessToken) {
-        //     window.location.href = '/login.html';
-        //     return;
-        // }
+        if (!this.accessToken) {
+            window.location.href = '/login.html';
+            return;
+        }
         await Promise.all([
             this.fetchUserLibrary(),
             this.fetchInfo(),
@@ -25,78 +26,15 @@ class App {
     }
 
 
-    // refresh access token with refresh token
-    async refreshAccessToken() {
-        try {
-            const response = await fetch('/api/token/refresh', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ refreshToken: this.refreshToken })
-            })
-
-            if (!response.ok) {
-                throw new Error('Refresh token failed');
-            }
-
-            const data = await response.json()
-            localStorage.setItem('accessToken', data.accessToken)
-            this.accessToken = data.accessToken
-            return true
-        } catch (error) {
-            console.error('Token refresh failed:', error)
-            return false
-        }
-    }
-    
-    // sending requests with authentication
-    async fetchWithAuth(url, options = {}) {
-        try {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': `Bearer ${this.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            if (response.status === 401) {
-                // Try to refresh the token
-                const refreshed = await this.refreshAccessToken()
-                if (refreshed) {
-                    // Retry the original request with new token
-                    return this.fetchWithAuth(url, options)
-                } else {
-                    // Refresh failed, redirect to login
-                    localStorage.removeItem('accessToken')
-                    localStorage.removeItem('refreshToken')
-                    window.location.href = '/login.html'
-                    return null
-                }
-            }
-
-            return response;
-        } catch (error) {
-            console.error('Fetch error:', error)
-            throw error
-        }
-    }
-
-
     // user login
-    async login() {
+    async login(username, password) {
         try {
-            // TODO: get username and password from page element
-            let usn = ""
-            let psw = ""
             const response = await fetch('/api/user/login', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: json.stringify({username: usn, password: psw})
+                body: json.stringify({ username, password })
             })
             if (!response.ok) {
                 const err = await response.json();
@@ -107,10 +45,12 @@ class App {
             const data = response.json()
             console.log("Login successful: ", data)
             // save tokens to client
+            this.accessToken = data.accessToken
+            this.refreshToken = data.refreshToken
             localStorage.setItem('accessToken', this.accessToken)
             localStorage.setItem('refreshToken', this.refreshToken)
             // go to main page
-            window.location.href = '../index.html'
+            window.location.href = '/index.html'
         } catch (error) {
             console.error('Error during login request:', error)
             alert('An error occurred. Please try again.')
@@ -118,17 +58,14 @@ class App {
     }
 
     // user register
-    async register() {
+    async register(username, password) {
         try {
-            // TODO: get username and password from page element
-            let usn = ""
-            let psw = ""
             const response = await fetch('/api/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username: usn, password: psw })
+                body: JSON.stringify({ username, password })
             })
     
             if (!response.ok) {
@@ -142,7 +79,7 @@ class App {
             console.log('Registration successful:', data)
 
             // automatically login after successful registration
-            await this.login()
+            await this.login(username, password)
         } catch (error) {
             console.error('Error during registration:', error)
             alert('An error occurred. Please try again.')
@@ -152,7 +89,7 @@ class App {
     // user logout
     async logout() {
         try {
-            const response = await this.fetchWithAuth('/api/user/logout', {
+            const response = await utils.fetchWithAuth('/api/user/logout', {
                 method: 'POST',
                 body: JSON.stringify({ refreshToken: this.refreshToken })
             })
@@ -180,7 +117,7 @@ class App {
     // fetch books in library and store in userData
     async fetchUserLibrary() {
         try {
-            const response = await this.fetchWithAuth('/api/books/library');
+            const response = await utils.fetchWithAuth('/api/books/library');
             if (!response) return;
             
             const books = await response.json();
@@ -189,18 +126,14 @@ class App {
                 title: book.book_title,
                 author: book.author,
                 coverUrl: book.book_image,
-                status: book.book_status
+                status: book.book_status,
+                userReview: book.review,
+                externalReviews: book.books_reviews
             }));
         } catch (error) {
             console.error('Error fetching library:', error);
         }
     }
-
-    // TODO: fetch current reading
-    // if use book-status, then might need to find a way to sort it
-    // async fetchCurrentReading() {
-        
-    // }
 
     // TODO: fetch info. 
     // If info is not personal, then hard coding is acceptable. Can store in database or not.
@@ -213,6 +146,57 @@ class App {
     // recommendation algo is tricky, maybe use a simple approach
     async fetchRecommendations() {
 
+    }
+
+    // search book
+    async searchBooks(searchTerm) {
+        try {
+            const response = await utils.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+    
+            const results = await response.json();
+            this.showSearchResults(results);
+        } catch (error) {
+            console.error('Error searching books:', error);
+            alert('Search failed. Please try again.');
+        }
+    }
+    
+    showSearchResults(results) {
+        const mainContent = document.querySelector('.main-content');
+        const searchResults = document.createElement('div');
+        searchResults.className = 'search-results';
+        
+        // Add back button
+        searchResults.innerHTML = `
+            <div class="search-header">
+                <button class="back-to-library">Back to Library</button>
+            </div>
+            <div class="personal-results">
+                <h2>From Your Library</h2>
+                <div class="books-grid">
+                    ${results.personalResults.map(book => components.renderBookCard(book)).join('')}
+                </div>
+            </div>
+            <div class="general-results">
+                <h2>More Books</h2>
+                <div class="books-grid">
+                    ${results.generalResults.map(book => components.renderBookCard(book)).join('')}
+                </div>
+            </div>
+        `;
+    
+        // Hide current content and show search results
+        mainContent.style.display = 'none';
+        mainContent.parentNode.insertBefore(searchResults, mainContent);
+    
+        // Add back button event listener
+        searchResults.querySelector('.back-to-library').addEventListener('click', () => {
+            searchResults.remove();
+            mainContent.style.display = 'block';
+        });
     }
 
 
@@ -264,7 +248,21 @@ class App {
                 window.location.href = `/book.html?id=${bookId}`;
             }
         });
-        // TODO: search event listener
+
+        // search
+        const searchInput = document.querySelector('.search-bar input');
+        let searchTimeout;
+        
+        searchInput?.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const searchTerm = e.target.value.trim();
+            
+            if (searchTerm.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    this.searchBooks(searchTerm);
+                }, 300);
+            }
+        });
 
         // TODO: 
     }
@@ -273,3 +271,5 @@ class App {
 document.addEventListener('DOMContentLoaded', () => {
     new App();
 });
+
+export default App;

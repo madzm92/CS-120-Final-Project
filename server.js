@@ -14,10 +14,12 @@ app.get('/', (req, res) => {
 });
 
 
-// user login
-// verify info on server, then send access token
+// user login, verify info on server, then send access token
 app.post('/api/user/login', async (req, res) => {
     const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
     try {
         const result = await pool.query(
             'SELECT * FROM user_info WHERE username = $1',
@@ -124,6 +126,14 @@ app.post('/api/user/register', async (req, res) => {
         return res.status(400).json({ message: 'Username and password are required' })
     }
     try {
+        // Check if username already exists
+        const existingUser = await pool.query(
+            'SELECT * FROM user_info WHERE username = $1',
+            [username]
+        );
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({ message: 'Username already exists' });
+        }
         const hashedPassword = await bcrypt.hash(password, 10)
         // not sure this is correct 
         const user = await pool.query(
@@ -192,6 +202,132 @@ app.get('/api/books/general/:id', async (req, res) => {
     }
 });
 
+// add a book to user library
+app.post('/api/books/library', auth, async (req, res) => {
+    try {
+        const book = req.body.book;
+        // First check if book exists in library_general
+        const bookExists = await pool.query(
+            'SELECT * FROM library_general WHERE book_id = $1',
+            [book.id]
+        );
+        if (bookExists.rows.length === 0) {
+            // not in library_general, then it's a external book
+            // MIGHTDO: handle external book, add it to library_general
+            await pool.query(
+                'TBD'
+            )
+            // if not handle external book, do this
+            res.status(404).json({ message: "Book not found in our database" });
+        }
+
+        // Add to library_personal
+        // TODO: check for correctness
+        await pool.query(
+            'INSERT INTO library_personal (user_id, book_id, book_status) VALUES ($1, $2, $3)',
+            [req.user.user_id, book.id, "plan_to_read"]
+        );
+        res.status(201).json({ message: 'Book added to library successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+// change reading status of a book
+app.put('api/books/status', auth, async (req, res) => {
+    try {
+        const { bookId, newStatus } = req.body;
+        const result = await pool.query(// TODO: check for correctness
+            'UPDATE library_personal SET book_status = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+            [newStatus, req.user.user_id, bookId]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Book not found in your library' });
+        }
+        res.json({ message: 'Status updated successfully' });
+
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }   
+    
+})
+
+// change user's review on this book
+app.put('/api/books/review', auth, async (req, res) => {
+    try {
+        const { bookId, review } = req.body;
+        const result = await pool.query(// TODO: check for correctness
+            'UPDATE library_personal SET review = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+            [review, req.user.user_id, bookId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Book not found in your library' });
+        }
+
+        res.json({ message: 'Review updated successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Search books in both library_personal and library_general
+// AI generated need to check later
+app.get('/api/books/search', auth, async (req, res) => {
+    try {
+        const searchTerm = req.query.term;
+        if (!searchTerm) {
+            return res.status(400).json({ message: 'Search term is required' });
+        }
+
+        // Search in user's personal library. 
+        const personalResults = await pool.query(
+            `SELECT lg.*, lp.book_status, lp.review
+            FROM library_general lg
+            JOIN library_personal lp ON lg.book_id = lp.book_id
+            WHERE lp.user_id = $1 
+            AND (LOWER(lg.book_title) LIKE LOWER($2) 
+            OR EXISTS (
+                SELECT 1 FROM authors a 
+                WHERE a.isbn = lg.isbn 
+                AND LOWER(a.author) LIKE LOWER($2)
+                ))`,
+                [req.user.user_id, `%${searchTerm}%`]
+            );
+            
+        // Search in general library (excluding books in personal library)
+        const generalResults = await pool.query(
+            `SELECT lg.*, string_agg(a.author, ', ') as authors
+             FROM library_general lg
+             LEFT JOIN authors a ON lg.isbn = a.isbn
+             WHERE lg.book_id NOT IN (
+                SELECT book_id FROM library_personal WHERE user_id = $1
+             )
+             AND (LOWER(lg.book_title) LIKE LOWER($2)
+                  OR EXISTS (
+                    SELECT 1 FROM authors a 
+                    WHERE a.isbn = lg.isbn 
+                    AND LOWER(a.author) LIKE LOWER($2)
+                  ))
+             GROUP BY lg.book_id`,
+            [req.user.user_id, `%${searchTerm}%`]
+        );
+
+        res.json({
+            personalResults: personalResults.rows,
+            generalResults: generalResults.rows
+        });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+// TODO: add a note to current book
 
 // TODO: implement info section if info stored in db
 
@@ -200,3 +336,11 @@ app.get('/api/books/general/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+pool.query('SELECT NOW()', (err, res) => {
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Database connected successfully');
+    }
+});
