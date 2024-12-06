@@ -71,4 +71,6 @@ const userData = {
             isbn: ""
         }
     ]
-}
+};
+
+export { userData };

@@ -1,4 +1,6 @@
 import utils from "./Utils.js";
+import { userData } from './data.js';
+
 export class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
