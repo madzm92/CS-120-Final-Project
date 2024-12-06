@@ -1,0 +1,273 @@
+/* overall layout */
+body {
+    font-family: 'SF Pro';
+    font-size: 1rem;
+}
+
+@font-face {
+    font-family: 'SF Pro';
+    src: url(SF-Pro.ttf);
+}
+
+.homepage {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.column-left {
+    flex: 1;
+    background: white;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.search-bar input{
+    width: 300px;
+    padding: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    font-size: 1rem;
+}
+
+
+/* Sections */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.view-all {
+    color: #3b82f6;
+    font-size: 0.875rem;
+    text-decoration: none;
+}
+/* current reading */
+ .current-reading {
+    margin-top: 1rem;
+    background: white;
+}
+
+.current-reading-grid {
+    overflow: auto;
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+
+}
+
+.current-reading-grid::-webkit-scrollbar {
+    display: none;
+}
+
+
+.current-reading-card {
+    flex: 0 0 25vw;
+    max-width: 240px;
+    min-width: 150px;
+}
+
+.current-reading-cover {
+    aspect-ratio: 3/4;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* library */
+/* .library .section-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+} */
+.books-grid {
+    padding: 1.25rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem;
+}
+
+.book-card {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.book-cover {
+    /*todo: let image ratio to determine container ratio*/
+    aspect-ratio: 2/3;
+    width: 100%;
+    height: 100%;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-title {
+    font-weight: 500;
+    font-size: 1.25rem;
+    font-style: italic;
+    margin: 0.5rem 0;
+}
+
+.book-author {
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 1rem;
+}
+
+/* Right Column */
+
+.column-right {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.column-right.active {
+    width: 25%;
+    background: #505050;
+    color: white;
+    padding: 1.75rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .column-right.active {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 60%;
+        background: #505050;
+        color: white;
+        padding: 1.5rem;
+        height: 100%;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    .column-right {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+}
+
+.info-section {
+    line-height: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.recommendations-grid {
+    padding: 1.25rem 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+/* Menu Toggle */
+.menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.menu-toggle-button {
+    background-color: #FFFFFF;
+    border: none;
+}
+
+/* make page scrollable */
+.content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* search related */
+.search-results {
+    padding: 20px;
+}
+
+.search-header {
+    margin-bottom: 20px;
+}
+
+.back-to-library {
+    padding: 8px 16px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.back-to-library:hover {
+    background-color: #2563eb;
+}
+
+.personal-results,
+.general-results {
+    margin-bottom: 30px;
+}
+
+.search-results h2 {
+    margin-bottom: 15px;
+    color: #1f2937;
+}
+
+/* Below is Book page */
+
+/* change reading status */
+.reading-status-container {
+    margin: 10px 0;
+    font-family: Arial, sans-serif;
+}
+
+.reading-status-container label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#readingStatus {
+    padding: 5px;
+    font-size: 14px;
+}
