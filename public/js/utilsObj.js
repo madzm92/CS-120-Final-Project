@@ -1,32 +1,51 @@
-class utilsObj {
+class UtilsObj {
     constructor() {
-        console.log("in utilsObj constructor")
+        this.updateTokens();
+    }
+
+    updateTokens() {
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        console.log("set variables")
+        console.log('Current tokens:', {
+            accessToken: this.accessToken,
+            refreshToken: this.refreshToken ? 'exists' : 'missing'
+        });
     }
 
     async fetchWithAuth(url, options = {}) {
-        console.log("in fetchWithAuth")
+        console.log('Fetching:', url);
+        this.updateTokens(); // 确保使用最新的 token
+
+        if (!this.accessToken) {
+            console.error('No access token available');
+            window.location.href = '/login.html';
+            return null;
+        }
+
+        const headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        console.log('Request headers:', headers);
+
         try {
             const response = await fetch(url, {
                 ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': `Bearer ${this.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers
             });
 
+            console.log('Response status:', response.status);
+
             if (response.status === 401) {
-                // Try to refresh the token
+                console.log('Token expired, attempting refresh');
                 const refreshed = await this.refreshAccessToken();
-                console.log("refreshAccessToken has been called")
                 if (refreshed) {
-                    // Retry the original request with new token
+                    console.log('Token refreshed, retrying request');
                     return this.fetchWithAuth(url, options);
                 } else {
-                    // Refresh failed, redirect to login
+                    console.log('Token refresh failed, redirecting to login');
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('refreshToken');
                     window.location.href = '/login.html';
@@ -42,6 +61,12 @@ class utilsObj {
     }
 
     async refreshAccessToken() {
+        console.log('Attempting to refresh token');
+        if (!this.refreshToken) {
+            console.error('No refresh token available');
+            return false;
+        }
+
         try {
             const response = await fetch('/api/token/refresh', {
                 method: 'POST',
@@ -52,12 +77,19 @@ class utilsObj {
             });
 
             if (!response.ok) {
+                console.error('Token refresh failed:', response.status);
                 return false;
             }
 
             const data = await response.json();
+            if (!data.accessToken) {
+                console.error('No access token in refresh response');
+                return false;
+            }
+
             this.accessToken = data.accessToken;
             localStorage.setItem('accessToken', data.accessToken);
+            console.log('Token refresh successful');
             return true;
         } catch (error) {
             console.error('Token refresh error:', error);
@@ -66,4 +98,4 @@ class utilsObj {
     }
 }
 
-export default new utilsObj();
+export const utilsObj = new UtilsObj();
