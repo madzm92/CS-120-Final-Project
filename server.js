@@ -169,12 +169,13 @@ app.get('/api/books/library', auth, async (req, res) => {
 app.get('/api/books/general/:id', async (req, res) => {
     try {
         const bookId = req.params.id;
+        console.log('Fetching book with ID:', bookId);
         
         const result = await pool.queryPromise(
             `SELECT lg.*, 
-                    GROUP_CONCAT(a.author SEPARATOR ', ') AS authors
+                    GROUP_CONCAT(a.author_name SEPARATOR ', ') AS authors
              FROM library_general AS lg
-             JOIN authors AS a
+             LEFT JOIN authors AS a  /* 改用 LEFT JOIN 以防没有作者 */
              ON lg.isbn = a.isbn
              WHERE lg.book_id = ?
              GROUP BY lg.book_id`,
@@ -182,20 +183,22 @@ app.get('/api/books/general/:id', async (req, res) => {
         );
 
         if (!result || result.length === 0) {
+            console.log('No book found with ID:', bookId);
             return res.status(404).json({ message: 'Book not found' });
         }
 
-        // get review
-        const reviewsResult = await pool.queryPromise(
-            `TBD`,
-            [bookId]
-        );
+        // TODO:get external review
+        // const reviewsResult = await pool.queryPromise(
+        //     `TBD`,
+        //     [bookId]
+        // );
 
         const bookData = {
             ...result[0],
-            reviews: reviewsResult
+            reviews: []  // empty for now,TBD
         };
 
+        console.log('Sending book data:', bookData);
         res.json(bookData);
     } catch (error) {
         console.error('Database error:', error);
@@ -208,25 +211,25 @@ app.post('/api/books/library', auth, async (req, res) => {
     try {
         const book = req.body.book;
         // First check if book exists in library_general
-        const bookExists = await pool.query(
-            'SELECT * FROM library_general WHERE book_id = ?',
-            [book.id]
-        );
-        if (!bookExists || bookExists.length === 0) {
-            // not in library_general, then it's a external book
-            // MIGHTDO: handle external book, add it to library_general
-            await pool.query(
-                'TBD'
-            )
-            // if not handle external book, do this
-            res.status(404).json({ message: "Book not found in our database" });
-        }
+        // const bookExists = await pool.query(
+        //     'SELECT * FROM library_general WHERE book_id = ?',
+        //     [book.book_id]
+        // );
+        // if (!bookExists || bookExists.length === 0) {
+        //     // not in library_general, then it's a external book
+        //     // MIGHTDO: handle external book, add it to library_general
+        //     // await pool.query(
+        //     //     'TBD'
+        //     // )
+        //     // if not handle external book, do this
+        //     res.status(404).json({ message: "Book not found in our database" });
+        // }
 
         // Add to library_personal
         // TODO: check for correctness
         await pool.query(
             'INSERT INTO library_personal (user_id, book_id, book_status) VALUES (?, ?, ?)',
-            [req.user.user_id, book.id, "plan_to_read"]
+            [req.user.user_id, book.book_id, "Not Started"]
         );
         res.status(201).json({ message: 'Book added to library successfully' });
     } catch (error) {

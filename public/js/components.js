@@ -53,17 +53,17 @@ export const components = {
                     <button id="editReviewBtn">EDIT MY REVIEW</button>
                 </div>
                 <div class="review-content-user">
-                ${book.review}|| 'You haven\'t written a review yet.'
+                ${book.review || 'You haven\'t written a review yet.'}
                 </div>
             </div>
         `
     },
 
     renderExternalReview(book) {
-        if (!book.externalReviews) {
+        if (!book.reviews) {
             return `<p>No external reviews available</p>`
         }
-        return book.externalReviews.map(review => 
+        return book.reviews.map(review => 
             `
             <div class="review-item">
                 <div class="review-header">

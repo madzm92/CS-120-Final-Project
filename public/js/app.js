@@ -140,11 +140,7 @@ export class App {
         try {
             const response = await utilsObj.fetchWithAuth('/api/books/library');
             if (!response) return;
-            console.log("Data has been fetched");
             const books = await response.json();
-            console.log("Received books data:", books);
-            console.log("Type of books:", typeof books);
-            console.log("Is array:", Array.isArray(books));
             
             if (!Array.isArray(books)) {
                 console.error('Expected books to be an array but got:', typeof books);
@@ -152,7 +148,6 @@ export class App {
             }
             
             userData.library = books;    
-            console.log("Data has been set to userData.library");
         } catch (error) {
             console.error('Error fetching library:', error);
         }
@@ -193,17 +188,17 @@ export class App {
         const currentReading = document.querySelector('.current-reading');
         const library = document.querySelector('.library');
         
-        // 移除已存在的搜索结果
+        // if already exists, remove
         const existingSearchResults = document.querySelector('.search-results');
         if (existingSearchResults) {
             existingSearchResults.remove();
         }
         
-        // 创建搜索结果容器
+        // create search result container
         const searchResults = document.createElement('div');
         searchResults.className = 'search-results';
         
-        // 添加搜索结果内容
+        // add search result content
         searchResults.innerHTML = `
             <div class="section-header">
                 <div class="section-title">Search Results</div>
@@ -254,7 +249,7 @@ export class App {
 
     loadCurrentReading() {
         const container = document.getElementById('currentReadingContainer');
-        const currentReading = userData.library.filter(book => book.status === 'In Progress');
+        const currentReading = userData.library.filter(book => book.book_status === 'In Progress');
         container.innerHTML = currentReading
             .map(book => components.renderCurrentReading(book))
             .join('');
@@ -298,14 +293,14 @@ export class App {
         const searchInput = document.querySelector('.search-bar input');
         const searchButton = document.querySelector('.search-button');
 
-        // 回车触发搜索
+        // keyboard press for search
         searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 this.performSearch(searchInput.value);
             }
         });
 
-        // 点击按钮触发搜索
+        // button for search
         searchButton.addEventListener('click', () => {
             this.performSearch(searchInput.value);
         });
