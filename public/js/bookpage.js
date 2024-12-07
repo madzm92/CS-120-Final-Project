@@ -1,5 +1,6 @@
-import utilsObj from "./utilsObj";
-import Swal from 'sweetalert2';
+import { utilsObj } from "./utilsObj.js";
+import { userData } from "./data.js";
+import { components } from "./components.js";
 
 class BookPage {
     constructor() {
@@ -10,24 +11,34 @@ class BookPage {
     }
 
     async init() {
-        this.bookData = userData.library.find(book => book.id === parseInt(this.bookId));
-        this.isInUserLibrary = !!this.bookData;
+        try {
+            // 首先尝试从用户库中获取书籍
+            const response = await utilsObj.fetchWithAuth(`/api/books/library`);
+            if (!response) return;
+            const books = await response.json();
+            userData.library = books;
+            
+            this.bookData = books.find(book => book.book_id === parseInt(this.bookId));
+            this.isInUserLibrary = !!this.bookData;
 
-        if (this.isInUserLibrary) {
-            // book in user library, just render it
-            this.loadBook();
-            this.loadUserReview();
-        } else {
-            // not in user library, check further from library_general
-            await this.fetchBookDetails();
-            this.loadBook();
+            if (this.isInUserLibrary) {
+                // 书籍在用户库中，直接加载
+                this.loadBook();
+                this.loadUserReview();
+            } else {
+                // 不在用户库中，从通用库查询
+                await this.fetchBookDetails();
+                this.loadBook();
+            }
+
+            this.loadExternalReviews();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error('Error initializing book page:', error);
+            this.renderErrorPage();
         }
-
-        this.loadExternalReviews();
-        this.setupEventListeners();
     }
 
-    
     // fetch book that is not stored in userData
     async fetchBookDetails() {
         try {
@@ -35,7 +46,6 @@ class BookPage {
             const response = await fetch(`/api/books/general/${this.bookId}`);
             if (response.ok) {
                 this.bookData = await response.json();
-                this.renderGeneralBookPage();
                 return;
             }
 
@@ -57,19 +67,24 @@ class BookPage {
     }
 
     loadBook() {
-        const container = document.getElementById("bookCard");
-        container.innerHTML = components.renderPageBook(this.bookData);
+        const bookCard = document.getElementById('bookCard');
+        if (!this.bookData) {
+            bookCard.innerHTML = '<p>Book not found</p>';
+            return;
+        }
+
+        bookCard.innerHTML = components.renderPageBook(this.bookData);
     }
     
     loadUserReview() {
         const container = document.getElementById("userReview");
-        container.innerHTML = components.renderUserSection(this.bookData);
+        container.innerHTML = components.renderUserReview(this.bookData);
     }
 
 
     loadExternalReviews() {
         const container = document.getElementById("externalReviews");
-        container.innerHTML = components.renderExternalReviews(this.bookData);
+        container.innerHTML = components.renderExternalReview(this.bookData);
     }
 
 
@@ -86,10 +101,10 @@ class BookPage {
                 this.addNote();
             });
             
-            document.getElementById('readingStatus').value = this.bookData.status;// check this later
+            document.getElementById('readingStatus').value = this.bookData.book_status;
             document.getElementById('readingStatus')?.addEventListener('change', async (event) => {
                 try {
-                    await changeReadingStatus(event.target.value);
+                    await this.changeReadingStatus(event.target.value);
                 } catch (error) {
                     console.error('Error changing status:', error);
                 }
@@ -153,7 +168,7 @@ class BookPage {
     // request for change user's review on a book
     // ai generated for better appearance
     async changeReview() {
-        const currentReview = this.bookData.userReview || '';
+        const currentReview = this.bookData.review || '';
 
         const { value: newReview } = await Swal.fire({
             title: 'Edit Your Review',
@@ -185,9 +200,13 @@ class BookPage {
                     throw new Error('Failed to update review.');
                 }
 
+                
                 // success then update
+                this.bookData.review = newReview;
                 this.loadUserReview();
-
+                document.getElementById('editReviewBtn')?.addEventListener('click', () => {
+                    this.changeReview();
+                });
                 Swal.fire('Success', 'Your review has been updated!', 'success');
             } catch (error) {
                 console.error('Error updating review:', error);
@@ -200,4 +219,7 @@ class BookPage {
     async addNote() {
 
     }
+
 }
+
+const bookPage = new BookPage();

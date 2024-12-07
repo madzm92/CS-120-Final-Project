@@ -1,6 +1,6 @@
-import utilsObj from "./utilsObj.js";
-
+import { utilsObj } from "./utilsObj.js";
 import { userData } from './data.js';
+import { components } from './components.js';
 
 export class App {
     constructor() {
@@ -45,9 +45,7 @@ export class App {
     // user login
     async login(username, password) {
         try {
-            console.log("username and password in app.js")
-            console.log(username)
-            console.log(password)
+            console.log("Attempting login with username:", username);
             const response = await fetch('/api/user/login', {
                 method: "POST",
                 headers: {
@@ -56,14 +54,14 @@ export class App {
                 body: JSON.stringify({ username, password })
             });
             
+            const data = await response.json();
+            
             if (!response.ok) {
-                const err = await response.json();
-                console.error("Login failed: ", err.message);
-                alert(`Login failed: ${err.message}`);
+                console.error("Login failed: ", data.message);
+                alert(`Login failed: ${data.message}`);
                 return;
             }
             
-            const data = await response.json();
             console.log("Login successful: ", data);
             
             // save tokens to client
@@ -73,7 +71,7 @@ export class App {
             localStorage.setItem('refreshToken', this.refreshToken);
             
             // Redirect to home page after successful login
-            window.location.href = '/';
+            window.location.href = '/index.html';
         } catch (error) {
             console.error('Error during login request:', error);
             alert('An error occurred. Please try again.');
@@ -83,29 +81,29 @@ export class App {
     // user register
     async register(username, password) {
         try {
+            console.log("Attempting registration with username:", username);
             const response = await fetch('/api/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ username, password })
-            })
+            });
     
+            const data = await response.json();
+            
             if (!response.ok) {
-                const err = await response.json()
-                console.error('Registration failed:', err.message)
-                alert(`Registration failed: ${err.message}`)
+                console.error('Registration failed:', data.message);
+                alert(`Registration failed: ${data.message}`);
                 return;
             }
     
-            const data = await response.json()
-            console.log('Registration successful:', data)
-
-            // automatically login after successful registration
-            await this.login(username, password)
+            console.log('Registration successful:', data);
+            // After successful registration, automatically log in
+            await this.login(username, password);
         } catch (error) {
-            console.error('Error during registration:', error)
-            alert('An error occurred. Please try again.')
+            console.error('Error during registration:', error);
+            alert('An error occurred during registration. Please try again.');
         }
     }
     
@@ -142,18 +140,14 @@ export class App {
         try {
             const response = await utilsObj.fetchWithAuth('/api/books/library');
             if (!response) return;
-            console.log("Data has been fetched");
             const books = await response.json();
-            userData.library = books.map(book => ({
-                id: book.book_id,
-                title: book.book_title,
-                author: book.author_name,
-                coverUrl: book.book_image,
-                status: book.book_status,
-                userReview: book.review,
-                // externalReviews: book.books_reviews
-            }));
-            console.log("Data has been set to userData.library");
+            
+            if (!Array.isArray(books)) {
+                console.error('Expected books to be an array but got:', typeof books);
+                return;
+            }
+            
+            userData.library = books;    
         } catch (error) {
             console.error('Error fetching library:', error);
         }
@@ -173,56 +167,78 @@ export class App {
     }
 
     // search book
-    async searchBooks(searchTerm) {
+    async performSearch(searchTerm) {
+        if (!searchTerm.trim()) {
+            return;
+        }
+
         try {
             const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
-            if (!response.ok) {
-                throw new Error('Search failed');
-            }
-    
+            if (!response) return;
+            
             const results = await response.json();
             this.showSearchResults(results);
         } catch (error) {
-            console.error('Error searching books:', error);
-            alert('Search failed. Please try again.');
+            console.error('Search failed:', error);
         }
     }
-    
+
     showSearchResults(results) {
-        const mainContent = document.querySelector('.main-content');
+        const contentScrollable = document.querySelector('.content-scrollable');
+        const currentReading = document.querySelector('.current-reading');
+        const library = document.querySelector('.library');
+        
+        // if already exists, remove
+        const existingSearchResults = document.querySelector('.search-results');
+        if (existingSearchResults) {
+            existingSearchResults.remove();
+        }
+        
+        // create search result container
         const searchResults = document.createElement('div');
         searchResults.className = 'search-results';
         
-        // Add back button
+        // add search result content
         searchResults.innerHTML = `
-            <div class="search-header">
+            <div class="section-header">
+                <div class="section-title">Search Results</div>
                 <button class="back-to-library">Back to Library</button>
             </div>
             <div class="personal-results">
-                <h2>From Your Library</h2>
+                <div class="section-header">
+                    <div class="section-title">From Your Library</div>
+                </div>
                 <div class="books-grid">
                     ${results.personalResults.map(book => components.renderBookCard(book)).join('')}
                 </div>
             </div>
             <div class="general-results">
-                <h2>More Books</h2>
+                <div class="section-header">
+                    <div class="section-title">More Books</div>
+                </div>
                 <div class="books-grid">
                     ${results.generalResults.map(book => components.renderBookCard(book)).join('')}
                 </div>
             </div>
         `;
     
-        // Hide current content and show search results
-        mainContent.style.display = 'none';
-        mainContent.parentNode.insertBefore(searchResults, mainContent);
+        // 隐藏当前阅读和图书馆部分
+        currentReading.style.display = 'none';
+        library.style.display = 'none';
+        
+        // 添加搜索结果到页面
+        contentScrollable.appendChild(searchResults);
     
-        // Add back button event listener
+        // 添加返回按钮事件监听器
         searchResults.querySelector('.back-to-library').addEventListener('click', () => {
+            // 移除搜索结果
             searchResults.remove();
-            mainContent.style.display = 'block';
+            
+            // 重新显示当前阅读和图书馆部分
+            currentReading.style.display = '';
+            library.style.display = '';
         });
     }
-
 
     loadLibrary() {
         const container = document.getElementById('libraryContainer');
@@ -233,7 +249,7 @@ export class App {
 
     loadCurrentReading() {
         const container = document.getElementById('currentReadingContainer');
-        const currentReading = userData.library.filter(book => book.status === 'reading');// not sure if this is right
+        const currentReading = userData.library.filter(book => book.book_status === 'In Progress');
         container.innerHTML = currentReading
             .map(book => components.renderCurrentReading(book))
             .join('');
@@ -275,20 +291,19 @@ export class App {
 
         // search
         const searchInput = document.querySelector('.search-bar input');
-        let searchTimeout;
-        
-        searchInput?.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            const searchTerm = e.target.value.trim();
-            
-            if (searchTerm.length >= 2) {
-                searchTimeout = setTimeout(() => {
-                    this.searchBooks(searchTerm);
-                }, 300);
+        const searchButton = document.querySelector('.search-button');
+
+        // keyboard press for search
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                this.performSearch(searchInput.value);
             }
         });
 
-        // TODO: 
+        // button for search
+        searchButton.addEventListener('click', () => {
+            this.performSearch(searchInput.value);
+        });
     }
 }
 

@@ -1,13 +1,13 @@
-const components = {
+export const components = {
     // main page
     renderBookCard(book) {// maybe make a new one for recommendations
         return `
-            <div class="book-card" data-book-id="${book.id}">
+            <div class="book-card" data-book-id="${book.book_id}">
                 <div class="book-cover">
-                   <img src="${book.coverUrl}" alt="${book.title}">
+                   <img src="${book.book_image}" alt="${book.book_title}">
                 </div>
-                <div class="book-title">${book.title}</div>
-                <div class="book-author">${book.author}</div>
+                <div class="book-title">${book.book_title}</div>
+                <div class="book-author">${book.authors}</div>
             </div>
         `;
 
@@ -15,9 +15,9 @@ const components = {
 
     renderCurrentReading(book) {
         return `
-            <div class="current-reading-card" data-book-id="${book.id}">
+            <div class="current-reading-card" data-book-id="${book.book_id}">
                 <div class="current-reading-cover">
-                    <img src="${book.coverUrl}" alt="${book.title}" loading="lazy">
+                    <img src="${book.book_image}" alt="${book.book_title}" loading="lazy">
                 </div>
             </div>
         `;
@@ -35,12 +35,12 @@ const components = {
 
     renderPageBook(book){
         return `
-            <div class="pagebook-card" data-book-id="${book.id}">
+            <div class="pagebook-card" data-book-id="${book.book_id}">
                 <div class="pagebook-cover">
-                   <img src="${book.coverUrl}" alt="${book.title}">
+                   <img src="${book.book_image}" alt="${book.book_title}">
                 </div>
-                <div class="pagebook-title">${book.title}</div>
-                <div class="pagebook-author">${book.author}</div>
+                <div class="pagebook-title">${book.book_title}</div>
+                <div class="pagebook-author">${book.authors}</div>
             </div>
         `
     },
@@ -53,17 +53,17 @@ const components = {
                     <button id="editReviewBtn">EDIT MY REVIEW</button>
                 </div>
                 <div class="review-content-user">
-                ${book.review}|| 'You haven\'t written a review yet.'
+                ${book.review || 'You haven\'t written a review yet.'}
                 </div>
             </div>
         `
     },
 
     renderExternalReview(book) {
-        if (!book.externalReviews) {
+        if (!book.reviews) {
             return `<p>No external reviews available</p>`
         }
-        return book.externalReviews.map(review => 
+        return book.reviews.map(review => 
             `
             <div class="review-item">
                 <div class="review-header">

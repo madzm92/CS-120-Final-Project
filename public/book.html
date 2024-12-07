@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Details</title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/book.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <div class="book-page">
@@ -32,9 +32,9 @@
                 <button id="addToLibraryBtn">Add to Library</button>
                 <div class="reading-status-container" id="changeStatus">
                     <select id="readingStatus">
-                        <option value="unread">Unread</option>
-                        <option value="reading">Reading</option>
-                        <option value="read">Read</option>
+                        <option value="Not Started">Not Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
                     </select>
                 </div>
                 
@@ -64,6 +64,7 @@
     </div>
 
     <script type="module" src="/js/data.js"></script>
+    <script type="module" src="/js/components.js"></script>
     <script type="module" src="/js/bookPage.js"></script>
 </body>
 </html>
