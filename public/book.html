@@ -8,16 +8,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <div class="book-page">
-        <div class="header">
-            <div class="back-nav">
-                <a href="/" class="back-button">🔙</a>
-            </div>
-        </div>
-
-        <div class="content-scrollable">
-
+    <div class="page-container">
+        
+        <div class="book-content">
+            
             <div class="book-section">
+                    <div class="back-nav">
+                        <a href="/" class="back-button">BACK</a>
+                    </div>
                 <div class="book-card" id="bookCard">
                     <!-- render big book card here -->
                     
@@ -42,20 +40,25 @@
                     <!-- render book reviews from external api here -->
 
                 </div>
+                <button id="viewAllReviews" class="view-all-btn">View All Reviews</button>
+
             </div>
             
             <div class="notes-section" id="notesSection">
                 <div class="notes-header">
-                    <h2>Notes</h2>
-                    <select id="sortNote">
+                    <div>Notes</div>
+                    <!-- <select id="sortNote">
                         <option value="newest">Newest to Oldest</option>
                         <option value="oldest">Oldest to Newest</option>
-                    </select>
+                    </select> -->
                 </div>
 
-                <div class="notes-container">
+                <div class="notes-container" id="userNotes">
                     <!-- load notes here -->
+
                 </div>
+                <button class="add-note-btn" id="addNoteBtn">+</button>
+
                 
             </div>
 

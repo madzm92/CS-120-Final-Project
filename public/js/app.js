@@ -153,17 +153,30 @@ export class App {
         }
     }
 
-    // TODO: fetch info. 
-    // If info is not personal, then hard coding is acceptable. Can store in database or not.
+    // fetch info. 
     async fetchInfo() {
-
+        try {
+            const response = await fetch('/api/info');
+            if (!response.ok) {
+                throw new Error('Failed to fetch info');
+            }
+            const info = await response.json();
+            userData.info = info;
+        } catch (error) {
+            console.error('Error fetching info:', error);
+        }
     }
 
-    // TODO: fetch recommendations. 
-    // recommend books in database, or outside, or both?
-    // recommendation algo is tricky, maybe use a simple approach
+    // fetch recommendations. 
     async fetchRecommendations() {
-
+        try {
+            const response = await utilsObj.fetchWithAuth('/api/books/recommendations');
+            if (!response) return;
+            const recommendations = await response.json();
+            userData.recommendations = recommendations;
+        } catch (error) {
+            console.error('Error fetching recommendations:', error);
+        }
     }
 
     // search book
@@ -265,8 +278,26 @@ export class App {
     loadRecommendations() {
         const container = document.getElementById('recommendationsContainer');
         container.innerHTML = userData.recommendations
-            .map(book => components.renderBookCard(book))
+            .map(book => components.renderRecommendationCard(book))
             .join('');
+    }
+
+    showAllLibrary() {
+        const currentReading = document.querySelector('.current-reading');
+        const library = document.querySelector('.library');
+        const viewAllBtn = library.querySelector('.view-all');
+        currentReading.style.display = 'none';
+
+        viewAllBtn.textContent = 'BACK';
+        viewAllBtn.classList.add('back-button');
+        
+        viewAllBtn.removeEventListener('click', this.showAllLibrary);
+        viewAllBtn.addEventListener('click', () => {
+            currentReading.style.display = '';
+            viewAllBtn.textContent = 'VIEW ALL';
+            viewAllBtn.classList.remove('back-button');
+            viewAllBtn.addEventListener('click', () => this.showAllLibrary());
+        });
     }
 
     setupEventListeners() {
@@ -280,14 +311,16 @@ export class App {
                 document.body.style.overflow = columnRight.classList.contains('active') ? 'hidden' : 'auto';
             }
         });
-        // go to book page by clicking book-card or current-reading-card
+
+        // route to book page by clicking book-card or current-reading-card or recommendation-card
         document.addEventListener('click', (e) => {
-            const bookCard = e.target.closest('.book-card, .current-reading-card');
+            const bookCard = e.target.closest('.book-card, .current-reading-card, .recommendation-card');
             if (bookCard) {
                 const bookId = bookCard.dataset.bookId;
                 window.location.href = `/book.html?id=${bookId}`;
             }
         });
+
 
         // search
         const searchInput = document.querySelector('.search-bar input');
@@ -304,6 +337,10 @@ export class App {
         searchButton.addEventListener('click', () => {
             this.performSearch(searchInput.value);
         });
+
+        // viewall
+        const libraryViewAll = document.querySelector('.library .view-all');
+        libraryViewAll?.addEventListener('click', () => this.showAllLibrary());
     }
 }
 
