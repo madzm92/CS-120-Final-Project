@@ -25,7 +25,7 @@ app.post('/api/user/login', async (req, res) => {
             'SELECT * FROM user_info WHERE username = ?',
             [username]
         );
-        if (result.length === 0) {
+        if (!result || result.length === 0) {
             return res.status(401).json({ message: 'User does not exist' })
         }
         if (await bcrypt.compare(password, result[0].password)) {
@@ -74,7 +74,7 @@ app.post('/api/token/refresh', async (req, res) => {
             'SELECT * FROM refresh_tokens WHERE refresh_token = ? AND user_id = ? AND expires_at > NOW()',
             [refreshToken, decoded.user_id]
         );
-        if (result.length === 0) {
+        if (!result || result.length === 0) {
             return res.status(403).json({ message: 'Invalid refresh token' });
         }
         // refresh access token
@@ -113,11 +113,11 @@ app.post('/api/user/register', async (req, res) => {
     }
     try {
         // Check if username already exists
-        const existingUser = await pool.queryPromise(
+        const existingRows = await pool.queryPromise(
             'SELECT * FROM user_info WHERE username = ?',
             [username]
         );
-        if (existingUser.length > 0) {
+        if (existingRows && existingRows.length > 0) {
             return res.status(400).json({ message: 'Username already exists' });
         }
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -136,20 +136,34 @@ app.post('/api/user/register', async (req, res) => {
 // get user's library
 app.get('/api/books/library', auth, async (req, res) => {
     try {
-        const result = await pool.queryPromise(
-            `SELECT lg.*, lp.book_status, lp.review , a.author_name
-             FROM library_general AS lg
-             JOIN library_personal AS lp ON lg.book_id = lp.book_id
-             JOIN authors as a ON lg.isbn = a.isbn
-             WHERE lp.user_id = ?`,
+        if (!req.user || !req.user.user_id) {
+            console.error('User not properly authenticated');
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        console.log('Fetching library for user:', req.user.user_id);
+        
+        const books = await pool.queryPromise(
+            `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
+             FROM library_general lg
+             JOIN library_personal lp ON lg.book_id = lp.book_id
+             LEFT JOIN authors a ON lg.isbn = a.isbn
+             WHERE lp.user_id = ?
+             GROUP BY lg.book_id`,
             [req.user.user_id]
         );
-        res.json(result)
+        
+        // console.log('Query result:', books);
+        console.log('Found books:', books.length);
+        res.json(books);
     } catch (error) {
-        console.error('Database error:', error)
-        res.status(500).json({ message: 'Internal server error' })
+        console.error('Database error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            details: error.message 
+        });
     }
-})
+});
 
 // fetch certain book in library_general but not in library_user
 app.get('/api/books/general/:id', async (req, res) => {
@@ -167,7 +181,7 @@ app.get('/api/books/general/:id', async (req, res) => {
             [bookId]
         );
 
-        if (result.length === 0) {
+        if (!result || result.length === 0) {
             return res.status(404).json({ message: 'Book not found' });
         }
 
@@ -195,10 +209,10 @@ app.post('/api/books/library', auth, async (req, res) => {
         const book = req.body.book;
         // First check if book exists in library_general
         const bookExists = await pool.query(
-            'SELECT * FROM library_general WHERE book_id = $1',
+            'SELECT * FROM library_general WHERE book_id = ?',
             [book.id]
         );
-        if (bookExists.rows.length === 0) {
+        if (!bookExists || bookExists.length === 0) {
             // not in library_general, then it's a external book
             // MIGHTDO: handle external book, add it to library_general
             await pool.query(
@@ -211,7 +225,7 @@ app.post('/api/books/library', auth, async (req, res) => {
         // Add to library_personal
         // TODO: check for correctness
         await pool.query(
-            'INSERT INTO library_personal (user_id, book_id, book_status) VALUES ($1, $2, $3)',
+            'INSERT INTO library_personal (user_id, book_id, book_status) VALUES (?, ?, ?)',
             [req.user.user_id, book.id, "plan_to_read"]
         );
         res.status(201).json({ message: 'Book added to library successfully' });
@@ -222,14 +236,14 @@ app.post('/api/books/library', auth, async (req, res) => {
 })
 
 // change reading status of a book
-app.put('api/books/status', auth, async (req, res) => {
+app.put('/api/books/status', auth, async (req, res) => {
     try {
         const { bookId, newStatus } = req.body;
-        const result = await pool.query(// TODO: check for correctness
-            'UPDATE library_personal SET book_status = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+        const result = await pool.query(
+            'UPDATE library_personal SET book_status = ? WHERE user_id = ? AND book_id = ?',
             [newStatus, req.user.user_id, bookId]
         );
-        if (result.rows.length === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: 'Book not found in your library' });
         }
         res.json({ message: 'Status updated successfully' });
@@ -245,12 +259,12 @@ app.put('api/books/status', auth, async (req, res) => {
 app.put('/api/books/review', auth, async (req, res) => {
     try {
         const { bookId, review } = req.body;
-        const result = await pool.query(// TODO: check for correctness
-            'UPDATE library_personal SET review = $1 WHERE user_id = $2 AND book_id = $3 RETURNING *',
+        const result = await pool.query(
+            'UPDATE library_personal SET review = ? WHERE user_id = ? AND book_id = ?',
             [review, req.user.user_id, bookId]
         );
 
-        if (result.rows.length === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: 'Book not found in your library' });
         }
 
@@ -262,7 +276,6 @@ app.put('/api/books/review', auth, async (req, res) => {
 });
 
 // Search books in both library_personal and library_general
-// AI generated need to check later
 app.get('/api/books/search', auth, async (req, res) => {
     try {
         const searchTerm = req.query.term;
@@ -270,46 +283,55 @@ app.get('/api/books/search', auth, async (req, res) => {
             return res.status(400).json({ message: 'Search term is required' });
         }
 
-        // Search in user's personal library. 
-        const personalResults = await pool.query(
-            `SELECT lg.*, lp.book_status, lp.review
+        console.log('Searching for term:', searchTerm);
+
+        // Search in user's personal library
+        const personalResults = await pool.queryPromise(
+            `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
             FROM library_general lg
             JOIN library_personal lp ON lg.book_id = lp.book_id
-            WHERE lp.user_id = $1 
-            AND (LOWER(lg.book_title) LIKE LOWER($2) 
+            LEFT JOIN authors a ON lg.isbn = a.isbn
+            WHERE lp.user_id = ? 
+            AND (LOWER(lg.book_title) LIKE LOWER(?) 
             OR EXISTS (
-                SELECT 1 FROM authors a 
-                WHERE a.isbn = lg.isbn 
-                AND LOWER(a.author) LIKE LOWER($2)
-                ))`,
-                [req.user.user_id, `%${searchTerm}%`]
-            );
+                SELECT 1 FROM authors a2 
+                WHERE a2.isbn = lg.isbn 
+                AND LOWER(a2.author_name) LIKE LOWER(?)
+            ))
+            GROUP BY lg.book_id`,
+            [req.user.user_id, `%${searchTerm}%`, `%${searchTerm}%`]
+        );
             
         // Search in general library (excluding books in personal library)
-        const generalResults = await pool.query(
-            `SELECT lg.*, string_agg(a.author, ', ') as authors
+        const generalResults = await pool.queryPromise(
+            `SELECT lg.*, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
              FROM library_general lg
              LEFT JOIN authors a ON lg.isbn = a.isbn
              WHERE lg.book_id NOT IN (
-                SELECT book_id FROM library_personal WHERE user_id = $1
+                SELECT book_id FROM library_personal WHERE user_id = ?
              )
-             AND (LOWER(lg.book_title) LIKE LOWER($2)
+             AND (LOWER(lg.book_title) LIKE LOWER(?)
                   OR EXISTS (
-                    SELECT 1 FROM authors a 
-                    WHERE a.isbn = lg.isbn 
-                    AND LOWER(a.author) LIKE LOWER($2)
+                    SELECT 1 FROM authors a2 
+                    WHERE a2.isbn = lg.isbn 
+                    AND LOWER(a2.author_name) LIKE LOWER(?)
                   ))
              GROUP BY lg.book_id`,
-            [req.user.user_id, `%${searchTerm}%`]
+            [req.user.user_id, `%${searchTerm}%`, `%${searchTerm}%`]
         );
 
+        console.log('Search results:', {
+            personalResults: personalResults || [],
+            generalResults: generalResults || []
+        });
+
         res.json({
-            personalResults: personalResults.rows,
-            generalResults: generalResults.rows
+            personalResults: personalResults || [],
+            generalResults: generalResults || []
         });
     } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Search error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 
