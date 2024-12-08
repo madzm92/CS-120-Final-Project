@@ -307,9 +307,9 @@ body {
     cursor: pointer;
 }
 
-.menu-toggle-button {
-    background-color: #FFFFFF;
+.menu-button {
     border: none;
+    background-color: #ffffff;
 }
 
 /* View All */
@@ -324,6 +324,10 @@ body {
 
 
 /* search related */
+.search-button {
+    border: none;
+    background-color: #ffffff;
+}
 .search-results {
     padding: 20px;
 }
