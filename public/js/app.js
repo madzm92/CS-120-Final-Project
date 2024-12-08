@@ -6,7 +6,6 @@ export class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        
         // Only initialize if we're not on login or register page
         const currentPath = window.location.pathname;
         if (currentPath !== '/login.html' && currentPath !== '/register.html') {
