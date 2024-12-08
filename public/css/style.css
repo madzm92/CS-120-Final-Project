@@ -112,16 +112,6 @@ h1 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* library */
-/* .library .section-header {
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 10;
-    padding: 1rem 0;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-} */
 .books-grid {
     padding: 1.25rem 0;
     display: grid;
