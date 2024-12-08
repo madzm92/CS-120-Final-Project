@@ -187,8 +187,8 @@ export class App {
         try {
             const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response) return;
-            
             const results = await response.json();
+            sessionStorage.setItem('lastSearch', searchTerm);
             this.showSearchResults(results);
         } catch (error) {
             console.error('Search failed:', error);

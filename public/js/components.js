@@ -55,6 +55,7 @@ export const components = {
                 </div>
                 <div class="pagebook-title">${book.book_title}</div>
                 <div class="pagebook-author">${book.authors}</div>
+                <div class="pagebook-description">${book.description || 'No description available.'}</div>
             </div>
         `
     },
@@ -74,17 +75,22 @@ export const components = {
     },
 
     renderExternalReview(book) {
-        if (!book.reviews) {
-            return `<p>No external reviews available</p>`
+        if (!book.reviews || book.reviews.length === 0) {
+            return `<p>No external reviews available</p>`;
         }
+    
         return `
             <div class="review-item">
                 <div class="review-header">
                     <h2>External Book Review</h2>
                 </div>
-                <div class="review-content">${book.reviews}</div>
+                <div class="review-content">${book.reviews[0]}</div>
+                ${book.reviews.length > 1 ? 
+                    `<button id="viewAllReviews" class="view-all-btn">View All Reviews (${book.reviews.length})</button>` 
+                    : ''
+                }
             </div>
-            `
+        `;
     },
 
     renderNote(note) {

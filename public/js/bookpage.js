@@ -158,6 +158,8 @@ class BookPage {
             showCancelButton: true,
             inputPlaceholder: 'Write your review here...',
             confirmButtonText: 'Save',
+            width: '90%',  
+            padding: '2em', 
             preConfirm: (review) => {
                 if (!review) {
                     Swal.showValidationMessage('Review cannot be empty!');
@@ -202,11 +204,9 @@ class BookPage {
             return;
         }
     
-        const reviewsHtml = this.bookData.reviews.map(review => `
+        const reviewsHtml = this.bookData.reviews.map(reviewText => `
             <div class="review-item">
-                <h3>${review.title}</h3>
-                <div class="review-author">${review.author}</div>
-                <div class="review-content">${review.value}</div>
+                <div class="review-content">${reviewText}</div>
             </div>
         `).join('<hr>');
     
@@ -217,7 +217,8 @@ class BookPage {
             showCloseButton: true,
             showConfirmButton: false,
             customClass: {
-                container: 'all-reviews-modal'
+                container: 'all-reviews-modal',
+                htmlContainer: 'reviews-modal-content'
             }
         });
     }
@@ -398,8 +399,23 @@ class BookPage {
     }
 
     setupEventListeners() {
+        // back button nav to prev search 
+        document.getElementById('backButton').addEventListener('click', (e) => {
+            e.preventDefault();
+            const lastSearch = sessionStorage.getItem('lastSearch');
+            if (lastSearch) {
+                window.location.href = `/?search=${encodeURIComponent(lastSearch)}`;
+            } else {
+                window.location.href = '/';
+            }
+        });
+
         const addToLibraryBtn = document.getElementById('addToLibraryBtn');
         const changeStatus = document.getElementById('changeStatus');
+        // show all external reviews
+        document.getElementById('viewAllReviews')?.addEventListener('click', () => {
+            this.showAllReviews();
+        });
         if (this.isInUserLibrary) {
             // if book in library_user, some actions are not avaliable
             // need to modify appearance of these buttons
@@ -418,10 +434,7 @@ class BookPage {
             document.getElementById('editReviewBtn')?.addEventListener('click', () => {
                 this.changeReview();
             });
-            // show all external reviews
-            document.getElementById('viewAllReviews')?.addEventListener('click', () => {
-                this.showAllReviews();
-            });
+
             // add note
             const addNoteBtn = document.getElementById('addNoteBtn');
             addNoteBtn.addEventListener('click', () => this.addNote());
@@ -439,7 +452,13 @@ class BookPage {
                     showDenyButton: true,
                     showCancelButton: true,
                     confirmButtonText: 'Edit',
-                    denyButtonText: 'Delete'
+                    denyButtonText: 'Delete',
+                    width: '80%',
+                    padding: '1em',
+                    customClass: {
+                        container: 'edit-note-modal-container',
+                        popup: 'edit-note-modal-popup'
+                    }
                 });
         
                 if (result.isConfirmed) {
