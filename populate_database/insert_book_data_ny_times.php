@@ -69,31 +69,19 @@ if ($apiGenreData['status'] == 'OK') {
                     for ($j = 0; $j < count($authorListFinal); $j++) {
                         array_push($authorList, $authorListFinal[$j]);
                         array_push($isbnList, $isbn);
-                        // echo $isbn;
-                        // echo " ";
-                        // echo $authorListFinal[$j];
-                        // echo " ";
                     }
-                    // echo "Field1: $titleLower, Field2: $publish_date, Field3: $genre, Field4: $description, Field5: $product_url,Field6: $book_image,Field7:$ny_times_recommend, Field8:$isbn,Field9:$bestsellers_date  \n";
-    
-                    // if ($stmt->execute()) {
-                    //     echo "Book Record inserted successfully!";
-                    // } else {
-                    //     continue; 
-                    // }
                 }
-                echo "herre";
                 for ( $i = 0; $i < count($authorListFinal); $i++ ) {
                     #parse author: if it has "and" or with "with" seperate into multiple
                     $stmt = $conn->prepare("INSERT IGNORE INTO authors (author_name, isbn) VALUES (?,?)");
                     echo "Author: $authorListFinal[$i], ISBN: $isbnList[$i]  \n";
     
                     $stmt->bind_param("ss", $authorListFinal[$i], $isbnList[$i]);
-                    // if ($stmt->execute()) {
-                    //     echo "Author Record inserted successfully!";
-                    // } else {
-                    //     continue; 
-                    // }
+                    if ($stmt->execute()) {
+                        echo "Author Record inserted successfully!";
+                    } else {
+                        continue; 
+                    }
             }
             }
         }
