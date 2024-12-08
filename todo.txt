@@ -1,8 +1,10 @@
 TODO List
 
+Code
 - fix bug: after searching for a book, and clicking on one, "Book not found" appears instead of the book info
 - reformat book pictures
 - recomendations side bar is not working 
+- Clean up code, remove any unnecessary doc strings
 
 For Demo
 - Show Recommended tab
@@ -10,3 +12,10 @@ For Demo
 - Add book to library & update the progress to "In Progress"
 - Add notes to the book/Show existing notes
 - Add some notes to a book already in the library
+
+Slides
+- Finish adding screenshots after bugs are fixed
+- Add references for cost/monitization info
+- Add code snippet
+
+Discuss who will present what
