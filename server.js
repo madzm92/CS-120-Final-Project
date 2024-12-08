@@ -144,19 +144,27 @@ app.get('/api/books/library', auth, async (req, res) => {
         console.log('Fetching library for user:', req.user.user_id);
         
         const books = await pool.queryPromise(
-            `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors, br.review_text as reviews
+            `SELECT lg.*, 
+                    lp.book_status, 
+                    lp.review, 
+                    GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') as authors,
+                    GROUP_CONCAT(DISTINCT br.review_text) as reviews
              FROM library_general lg
              JOIN library_personal lp ON lg.book_id = lp.book_id
              LEFT JOIN authors a ON lg.isbn = a.isbn
-             LEFT JOIN book_reviews br on lg.isbn = br.isbn
+             LEFT JOIN book_reviews br ON lg.isbn = br.isbn
              WHERE lp.user_id = ?
              GROUP BY lg.book_id`,
             [req.user.user_id]
         );
         
-        // console.log('Query result:', books);
-        console.log('Found books:', books.length);
-        res.json(books);
+        // handle external reviews
+        const processedBooks = books.map(book => ({
+            ...book,
+            reviews: book.reviews ? book.reviews.split(',') : []
+        }));
+        
+        res.json(processedBooks);
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).json({ 
@@ -224,10 +232,11 @@ app.get('/api/books/general/:id', async (req, res) => {
         
         const result = await pool.queryPromise(
             `SELECT lg.*, 
-                    GROUP_CONCAT(a.author_name SEPARATOR ', ') AS authors
+                    GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS authors,
+                    GROUP_CONCAT(DISTINCT br.review_text) AS reviews
              FROM library_general AS lg
-             LEFT JOIN authors AS a  /* 改用 LEFT JOIN 以防没有作者 */
-             ON lg.isbn = a.isbn
+             LEFT JOIN authors a ON lg.isbn = a.isbn
+             LEFT JOIN book_reviews br ON lg.isbn = br.isbn
              WHERE lg.book_id = ?
              GROUP BY lg.book_id`,
             [bookId]
@@ -242,15 +251,17 @@ app.get('/api/books/general/:id', async (req, res) => {
             `SELECT review_text as reviews
              FROM book_reviews
              WHERE isbn = ?`,
-            [bookDetails.isbn]
+            [result.isbn]
         );
 
         const reviews = reviewsResult.map(review => review.review_text);
 
         // Combine book details and reviews
         const bookData = {
-            ...bookDetails,
-            reviews: reviews
+            ...result[0],
+            reviews: result[0].reviews ? result[0].reviews.split(',') : [],
+            book_status: null,  
+            review: null       
         };
 
         console.log('Sending book data:', bookData);
