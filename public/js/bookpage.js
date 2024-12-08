@@ -228,23 +228,41 @@ class BookPage {
         const { value: formValues } = await Swal.fire({
             title: 'Add New Note',
             html: `
-                <textarea id="swal-note-content" class="swal2-textarea" placeholder="Enter your note"></textarea>
-                <div id="ps-container">
-                    <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                <div class="edit-note-container">
+                    <textarea id="swal-note-content" class="swal2-textarea note-edit-textarea" placeholder="Enter your note"></textarea>
+                    <div id="ps-container" class="ps-edit-container">
+                        <div class="ps-input-group">
+                            <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                            <button type="button" class="delete-ps-btn">×</button>
+                        </div>
+                    </div>
+                    <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
                 </div>
-                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
+            width: '80%',
+            padding: '1em',
+            customClass: {
+                container: 'edit-note-modal-container',
+                popup: 'edit-note-modal-popup'
+            },
             didOpen: () => {
-                // Add event listener for "Add Another PS" button
                 document.getElementById('add-ps').addEventListener('click', () => {
                     const psContainer = document.getElementById('ps-container');
-                    const newPsInput = document.createElement('input');
-                    newPsInput.type = 'text';
-                    newPsInput.className = 'swal-ps-input swal2-input';
-                    newPsInput.placeholder = 'PS (optional)';
-                    psContainer.appendChild(newPsInput);
+                    const psGroup = document.createElement('div');
+                    psGroup.className = 'ps-input-group';
+                    psGroup.innerHTML = `
+                        <input type="text" class="swal-ps-input swal2-input" placeholder="PS">
+                        <button type="button" class="delete-ps-btn">×</button>
+                    `;
+                    psContainer.appendChild(psGroup);
+                });
+            
+                document.getElementById('ps-container').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-ps-btn')) {
+                        e.target.closest('.ps-input-group').remove();
+                    }
                 });
             },
             preConfirm: () => {
@@ -252,13 +270,13 @@ class BookPage {
                 const psInputs = document.querySelectorAll('.swal-ps-input');
                 const psArray = Array.from(psInputs)
                     .map(input => input.value.trim())
-                    .filter(ps => ps); // Filter out empty inputs
-    
+                    .filter(ps => ps);
+        
                 if (!content) {
                     Swal.showValidationMessage('Note content cannot be empty!');
                     return false;
                 }
-    
+        
                 return {
                     content: content,
                     ps: psArray
