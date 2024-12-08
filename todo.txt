@@ -40,15 +40,15 @@ book page entrance is book-cards
         - if not in library_general, need external api, tricky
 
 
-Some question:  1. review text and value, what is the difference. Do we have review title and author?
-                2. book status. What are they?
-                3. Database need to store token; user_info could trim first and last name.
-                    CREATE TABLE refresh_tokens (
-                        token_id INT PRIMARY KEY AUTO_INCREMENT,
-                        user_id INT,
-                        refresh_token TEXT NOT NULL,
-                        expires_at TIMESTAMP NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (user_id) REFERENCES user_info(user_id)
-                    );
-                4. 
+Style todo: 
+    Book-card, fixed height? wrap title and author if necessary.
+    right-column expand animation
+    search icon.
+    "View all" animation
+    current-reading-card cover issue
+
+    book page left column need modification
+    note editing modal need some style editing
+    
+    
+

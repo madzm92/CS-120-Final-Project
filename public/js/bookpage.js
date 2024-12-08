@@ -12,7 +12,7 @@ class BookPage {
 
     async init() {
         try {
-            // 首先尝试从用户库中获取书籍
+            // first, check library_personal
             const response = await utilsObj.fetchWithAuth(`/api/books/library`);
             if (!response) return;
             const books = await response.json();
@@ -22,11 +22,12 @@ class BookPage {
             this.isInUserLibrary = !!this.bookData;
 
             if (this.isInUserLibrary) {
-                // 书籍在用户库中，直接加载
+                // in library_personal, load it
                 this.loadBook();
                 this.loadUserReview();
+                await this.loadNotes();
             } else {
-                // 不在用户库中，从通用库查询
+                // not in library_personal, query library_general
                 await this.fetchBookDetails();
                 this.loadBook();
             }
@@ -87,41 +88,20 @@ class BookPage {
         container.innerHTML = components.renderExternalReview(this.bookData);
     }
 
-
-    setupEventListeners() {
-        const addToLibraryBtn = document.getElementById('addToLibraryBtn');
-        const changeStatus = document.getElementById('changeStatus');
-        if (this.isInUserLibrary) {
-            // if book in library_user, some actions are not avaliable
-            // need to modify appearance of these buttons
-            addToLibraryBtn.style.display = 'none';
-            changeStatus.style.display = 'block';
-            
-            document.getElementById('addNoteBtn')?.addEventListener('click', () => {
-                this.addNote();
-            });
-            
-            document.getElementById('readingStatus').value = this.bookData.book_status;
-            document.getElementById('readingStatus')?.addEventListener('change', async (event) => {
-                try {
-                    await this.changeReadingStatus(event.target.value);
-                } catch (error) {
-                    console.error('Error changing status:', error);
-                }
-            });
-
-            document.getElementById('editReviewBtn')?.addEventListener('click', () => {
-                this.changeReview();
-            });
-        } else {
-            // if not, show different actions
-            addToLibraryBtn.style.display = 'block';
-            changeStatus.style.display = 'none';
-            document.getElementById('addToLibraryBtn')?.addEventListener('click', () => {
-                this.addToUserLibrary();
-            });
+    async loadNotes() {
+        try {
+            const res = await utilsObj.fetchWithAuth(`/api/books/${this.bookId}/notes`);
+            if (!res) return;
+            const notes = await res.json();
+            const container = document.getElementById("userNotes");
+            container.innerHTML = notes.map(note => 
+                components.renderNote(note)
+            ).join('');
+        } catch (error) {
+            console.error("Error loading notes:", error)
         }
     }
+
 
     // request for add new book to user's library
     async addToUserLibrary() {
@@ -214,11 +194,272 @@ class BookPage {
             }
         }
     }
-    
-    // TODO: implement add note
-    async addNote() {
 
+    // show all external reviews
+    async showAllReviews() {
+        if (!this.bookData.reviews || this.bookData.reviews.length === 0) {
+            Swal.fire('No Reviews', 'No external reviews available for this book.', 'info');
+            return;
+        }
+    
+        const reviewsHtml = this.bookData.reviews.map(review => `
+            <div class="review-item">
+                <h3>${review.title}</h3>
+                <div class="review-author">${review.author}</div>
+                <div class="review-content">${review.value}</div>
+            </div>
+        `).join('<hr>');
+    
+        Swal.fire({
+            title: 'All Reviews',
+            html: `<div class="all-reviews-container">${reviewsHtml}</div>`,
+            width: '80%',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                container: 'all-reviews-modal'
+            }
+        });
     }
+    
+    // add note
+    async addNote() {
+        const { value: formValues } = await Swal.fire({
+            title: 'Add New Note',
+            html: `
+                <textarea id="swal-note-content" class="swal2-textarea" placeholder="Enter your note"></textarea>
+                <div id="ps-container">
+                    <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                </div>
+                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            didOpen: () => {
+                // Add event listener for "Add Another PS" button
+                document.getElementById('add-ps').addEventListener('click', () => {
+                    const psContainer = document.getElementById('ps-container');
+                    const newPsInput = document.createElement('input');
+                    newPsInput.type = 'text';
+                    newPsInput.className = 'swal-ps-input swal2-input';
+                    newPsInput.placeholder = 'PS (optional)';
+                    psContainer.appendChild(newPsInput);
+                });
+            },
+            preConfirm: () => {
+                const content = document.getElementById('swal-note-content').value.trim();
+                const psInputs = document.querySelectorAll('.swal-ps-input');
+                const psArray = Array.from(psInputs)
+                    .map(input => input.value.trim())
+                    .filter(ps => ps); // Filter out empty inputs
+    
+                if (!content) {
+                    Swal.showValidationMessage('Note content cannot be empty!');
+                    return false;
+                }
+    
+                return {
+                    content: content,
+                    ps: psArray
+                };
+            }
+        });
+    
+        if (formValues) {
+            try {
+                const response = await utilsObj.fetchWithAuth(`/api/books/${this.bookId}/notes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: formValues.content,
+                        ps: formValues.ps
+                    })
+                });
+                
+                if (response.ok) {
+                    Swal.fire('Success', 'Note added successfully!', 'success');
+                    await this.loadNotes();
+                }
+            } catch (error) {
+                console.error('Error adding note:', error);
+                Swal.fire('Error', 'Failed to add note', 'error');
+            }
+        }
+    }
+
+    // edit note
+    async editNote(noteId, currentContent, currentPs) {
+        const { value: formValues } = await Swal.fire({
+            title: 'Edit Note',
+            html: `
+                <div class="edit-note-container">
+                    <textarea id="swal-note-content" class="swal2-textarea note-edit-textarea">${currentContent}</textarea>
+                    <div id="ps-container" class="ps-edit-container">
+                        ${currentPs.map(ps => `
+                            <div class="ps-input-group">
+                                <input type="text" class="swal-ps-input swal2-input" value="${ps}">
+                                <button type="button" class="delete-ps-btn">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            didOpen: () => {
+                document.getElementById('add-ps').addEventListener('click', () => {
+                    const psContainer = document.getElementById('ps-container');
+                    const psGroup = document.createElement('div');
+                    psGroup.className = 'ps-input-group';
+                    psGroup.innerHTML = `
+                        <input type="text" class="swal-ps-input swal2-input" placeholder="PS">
+                        <button type="button" class="delete-ps-btn">×</button>
+                    `;
+                    psContainer.appendChild(psGroup);
+                });
+            
+                document.getElementById('ps-container').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-ps-btn')) {
+                        e.target.closest('.ps-input-group').remove();
+                    }
+                });
+            },
+            preConfirm: () => {
+                const content = document.getElementById('swal-note-content').value.trim();
+                const psInputs = document.querySelectorAll('.swal-ps-input');
+                const psArray = Array.from(psInputs)
+                    .map(input => input.value.trim())
+                    .filter(ps => ps);
+    
+                if (!content) {
+                    Swal.showValidationMessage('Note content cannot be empty!');
+                    return false;
+                }
+    
+                return {
+                    content: content,
+                    ps: psArray
+                };
+            }
+        });
+    
+        if (formValues) {
+            try {
+                const response = await utilsObj.fetchWithAuth(
+                    `/api/books/${this.bookId}/notes/${noteId}`,
+                    {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formValues)
+                    }
+                );
+    
+                if (response.ok) {
+                    await this.loadNotes();
+                    Swal.fire('Success', 'Note updated successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Error updating note:', error);
+                Swal.fire('Error', 'Failed to update note', 'error');
+            }
+        }
+    }
+    
+    // delete note
+    async deleteNote(noteId) {
+        const result = await Swal.fire({
+            title: 'Delete Note',
+            text: 'Are you sure you want to delete this note?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Delete'
+        });
+    
+        if (result.isConfirmed) {
+            try {
+                const response = await utilsObj.fetchWithAuth(
+                    `/api/books/${this.bookId}/notes/${noteId}`,
+                    { method: 'DELETE' }
+                );
+    
+                if (response.ok) {
+                    await this.loadNotes();
+                    Swal.fire('Deleted!', 'Your note has been deleted.', 'success');
+                }
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                Swal.fire('Error', 'Failed to delete note', 'error');
+            }
+        }
+    }
+
+    setupEventListeners() {
+        const addToLibraryBtn = document.getElementById('addToLibraryBtn');
+        const changeStatus = document.getElementById('changeStatus');
+        if (this.isInUserLibrary) {
+            // if book in library_user, some actions are not avaliable
+            // need to modify appearance of these buttons
+            addToLibraryBtn.style.display = 'none';
+            changeStatus.style.display = 'block';
+            
+            document.getElementById('readingStatus').value = this.bookData.book_status;
+            document.getElementById('readingStatus')?.addEventListener('change', async (event) => {
+                try {
+                    await this.changeReadingStatus(event.target.value);
+                } catch (error) {
+                    console.error('Error changing status:', error);
+                }
+            });
+            // edit review
+            document.getElementById('editReviewBtn')?.addEventListener('click', () => {
+                this.changeReview();
+            });
+            // show all external reviews
+            document.getElementById('viewAllReviews')?.addEventListener('click', () => {
+                this.showAllReviews();
+            });
+            // add note
+            const addNoteBtn = document.getElementById('addNoteBtn');
+            addNoteBtn.addEventListener('click', () => this.addNote());
+            // view and edit note
+            document.getElementById('userNotes').addEventListener('click', async (e) => {
+                const noteCard = e.target.closest('.note-card');
+                if (!noteCard) return;
+        
+                const noteId = noteCard.dataset.noteId;
+                const content = decodeURIComponent(noteCard.dataset.noteContent);
+                const ps = JSON.parse(noteCard.dataset.notePs);
+        
+                const result = await Swal.fire({
+                    title: 'Note Options',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Edit',
+                    denyButtonText: 'Delete'
+                });
+        
+                if (result.isConfirmed) {
+                    await this.editNote(noteId, content, ps);
+                } else if (result.isDenied) {
+                    await this.deleteNote(noteId);
+                }
+            });
+            
+        } else {
+            // if not, show different actions
+            addToLibraryBtn.style.display = 'block';
+            changeStatus.style.display = 'none';
+            document.getElementById("notesSection").display = "none";
+            document.getElementById('addToLibraryBtn')?.addEventListener('click', () => {
+                this.addToUserLibrary();
+            });
+        }
+    }
+
 
 }
 

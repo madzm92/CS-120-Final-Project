@@ -9,6 +9,7 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    charset: 'utf8mb4',
     connectionLimit: 5
 });
 
