@@ -4,7 +4,6 @@ Code
 - fix bug: after searching for a book, and clicking on one, "Book not found" appears instead of the book info
 - reformat book pictures
 - recomendations side bar is not working 
-- Clean up code, remove any unnecessary doc strings
 
 For Demo
 - Show Recommended tab
