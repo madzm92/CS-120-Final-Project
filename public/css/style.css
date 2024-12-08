@@ -9,6 +9,11 @@ body {
     src: url(SF-Pro.ttf);
 }
 
+h1 {
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
 .page-container {
     display: flex;
     height: 100vh;
@@ -307,9 +312,9 @@ body {
     cursor: pointer;
 }
 
-.menu-toggle-button {
-    background-color: #FFFFFF;
+.menu-button {
     border: none;
+    background-color: #ffffff;
 }
 
 /* View All */
@@ -324,6 +329,10 @@ body {
 
 
 /* search related */
+.search-button {
+    border: none;
+    background-color: #ffffff;
+}
 .search-results {
     padding: 20px;
 }
@@ -371,18 +380,56 @@ body {
     overflow: hidden;
 }
 
-.back-nav {
-    top: 30px;
-    left: 30px;
-    position: absolute;
-}
-
 .book-section {
     flex: 2;
     margin-top: 5rem;
     padding: 0 1rem;
     overflow-y: auto;
     border-right: 1px solid #e5e7eb;
+}
+
+.back-nav {
+    top: 30px;
+    left: 30px;
+    position: absolute;
+
+}
+
+.back-button {
+    text-decoration: none;
+    color: #448FF0;
+}
+
+
+.add-to-library-button {
+    background: #448FF0;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 1rem 1rem;
+    cursor: pointer;
+    font-size: .75rem;
+}
+
+#readingStatus {
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+#changeStatus label {
+    font-weight: normal;
+}
+
+#readingStatus option[value=""] {
+    color: #ccc;
 }
 
 .notes-section {
