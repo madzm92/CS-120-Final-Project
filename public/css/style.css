@@ -9,10 +9,19 @@ body {
     src: url(SF-Pro.ttf);
 }
 
-.homepage {
+.page-container {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+/* make page scrollable */
+.content-scrollable {
+    flex: 1;
+    overflow-y: auto;
 }
 
 .column-left {
@@ -121,6 +130,8 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    cursor: pointer;
+
 }
 
 .book-cover {
@@ -165,9 +176,104 @@ body {
     background: #505050;
     color: white;
     padding: 1.75rem;
-    height: 100%;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Info Section */
+.info-section {
+    flex: 0 0 auto; 
+    max-height: 30vh;
     overflow-y: auto;
 }
+
+/* Info Item */
+.info-item {
+    margin: 0.5rem auto;
+    font-size: 0.9rem;
+    border-radius: 0.3rem;
+}
+
+.info-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5rem;
+}
+
+/* Info section: different types  */
+.info-item[data-type="update"] {
+    color: #5ca5ff;
+}
+
+.info-item[data-type="promo"] {
+    color: #ff920c;
+}
+
+.info-item[data-type="other"] {
+    color: #d0d0d0;
+}
+
+/* Recommendations section */
+.recommendations {
+    flex: 1;
+}
+
+.recommendations-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* recommendation-card, different from left-column */
+.recommendation-card {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recommendation-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.recommendation-cover {
+    flex: 0 0 60px;
+    height: 90px;
+    border-radius: 0.3rem;
+    overflow: hidden;
+}
+
+.recommendation-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recommendation-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.recommendation-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #ffffff;
+}
+
+.recommendation-author {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
 
 @media (max-width: 768px) {
     .column-right.active {
@@ -189,17 +295,7 @@ body {
     }
 }
 
-.info-section {
-    line-height: 1.75rem;
-    margin-bottom: 2rem;
-}
 
-.recommendations-grid {
-    padding: 1.25rem 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
 
 /* Menu Toggle */
 .menu-toggle {
@@ -216,11 +312,16 @@ body {
     border: none;
 }
 
-/* make page scrollable */
-.content-scrollable {
-    flex: 1;
-    overflow-y: auto;
+/* View All */
+.view-all.back-button {
+    color: #ef4444;
 }
+
+.view-all.back-button:hover {
+    color: #dc2626;
+}
+
+
 
 /* search related */
 .search-results {
@@ -254,7 +355,152 @@ body {
     color: #1f2937;
 }
 
-/* Below is Book page */
+/* 
+ *  
+ *
+ *   Below is Book page 
+ *
+ *
+*/
+
+.book-content {
+    top: 0;
+    left: 0;
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.back-nav {
+    top: 30px;
+    left: 30px;
+    position: absolute;
+}
+
+.book-section {
+    flex: 2;
+    margin-top: 5rem;
+    padding: 0 1rem;
+    overflow-y: auto;
+    border-right: 1px solid #e5e7eb;
+}
+
+.notes-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f5;
+    position: relative;
+}
+
+.notes-header {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.notes-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    padding-bottom: 80px;
+}
+
+.add-note-btn {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-note-btn:hover {
+    background: #2563eb;
+}
+
+.note-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.note-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.note-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #374151;
+    margin-bottom: 0.75rem;
+}
+
+.note-ps-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.1rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.note-ps {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    background: #f3f4f6;
+    border-radius: 4px;
+    color: #4b5563;
+}
+
+.ps-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.delete-ps-btn {
+    padding: 0.5rem 1rem;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-ps-btn:hover {
+    background-color: #dc2626;
+}
+
+
+.view-all-btn {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    background: transparent;
+    border: 1px solid #3b82f6;
+    color: #3b82f6;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
 
 /* change reading status */
 .reading-status-container {
@@ -270,4 +516,80 @@ body {
 #readingStatus {
     padding: 5px;
     font-size: 14px;
+}
+
+/* Edit Note Modal Styles */
+.edit-note-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 80vh;
+}
+
+.note-edit-textarea {
+    flex: 1;
+    min-height: 200px !important;
+    margin: 0 !important;
+    resize: vertical;
+}
+
+.ps-edit-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+.ps-input-group {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.swal-ps-input {
+    width: auto !important;
+    min-width: 150px;
+    height: 32px !important;
+    margin: 0 !important;
+    padding: 0.25rem 0.5rem !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.delete-ps-btn {
+    padding: 0.25rem 0.5rem;
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    margin-left: 0.25rem;
+}
+
+.delete-ps-btn:hover {
+    background: #fecaca;
+}
+
+.add-ps-btn {
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-ps-btn:hover {
+    background: #2563eb;
 }
