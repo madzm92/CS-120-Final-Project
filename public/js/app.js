@@ -302,7 +302,7 @@ export class App {
 
     setupEventListeners() {
         // sidebar toggle event listener
-        const menuToggle = document.querySelector('.menu-toggle-button');
+        const menuToggle = document.querySelector('.menu-button');
         const columnRight = document.querySelector('.column-right');
         
         menuToggle?.addEventListener('click', () => {
