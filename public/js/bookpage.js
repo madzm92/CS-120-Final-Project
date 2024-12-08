@@ -229,12 +229,17 @@ class BookPage {
             html: `
                 <textarea id="swal-note-content" class="swal2-textarea" placeholder="Enter your note"></textarea>
                 <div id="ps-container">
-                    <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                    <input type="text" class="swal-ps-input" placeholder="PS (optional)">
                 </div>
-                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
+                <button id="add-ps" type="button">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
+            customClass: {
+                title: 'swal-title',
+                confirmButton: 'swal-confirm-button',
+                cancelButton: 'swal-cancel-button'
+            },
             didOpen: () => {
                 // Add event listener for "Add Another PS" button
                 document.getElementById('add-ps').addEventListener('click', () => {
