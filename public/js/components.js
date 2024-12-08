@@ -85,7 +85,6 @@ export const components = {
                 <div class="review-content">${book.reviews}</div>
             </div>
             `
-        ).join('')
     },
 
     renderNote(note) {
