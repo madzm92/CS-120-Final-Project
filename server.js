@@ -144,10 +144,11 @@ app.get('/api/books/library', auth, async (req, res) => {
         console.log('Fetching library for user:', req.user.user_id);
         
         const books = await pool.queryPromise(
-            `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
+            `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors, br.review_text as reviews
              FROM library_general lg
              JOIN library_personal lp ON lg.book_id = lp.book_id
              LEFT JOIN authors a ON lg.isbn = a.isbn
+             LEFT JOIN book_reviews br on lg.isbn = br.isbn
              WHERE lp.user_id = ?
              GROUP BY lg.book_id`,
             [req.user.user_id]
@@ -237,15 +238,19 @@ app.get('/api/books/general/:id', async (req, res) => {
             return res.status(404).json({ message: 'Book not found' });
         }
 
-        // TODO:get external review
-        // const reviewsResult = await pool.queryPromise(
-        //     `TBD`,
-        //     [bookId]
-        // );
+        const reviewsResult = await pool.queryPromise(
+            `SELECT review_text as reviews
+             FROM book_reviews
+             WHERE isbn = ?`,
+            [bookDetails.isbn]
+        );
 
+        const reviews = reviewsResult.map(review => review.review_text);
+
+        // Combine book details and reviews
         const bookData = {
-            ...result[0],
-            reviews: []  // empty for now,TBD
+            ...bookDetails,
+            reviews: reviews
         };
 
         console.log('Sending book data:', bookData);

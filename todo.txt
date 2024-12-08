@@ -1,8 +1,6 @@
 login page, could be a pop-out window, but seperate page is fine
 register page, same as above
 
-Maddie: book reviews, not decided yet
-
 Qihang: book page (1/2 pages) -> left column finished
     - there are three states for a book
     - 1. book is library_user

@@ -77,14 +77,12 @@ export const components = {
         if (!book.reviews) {
             return `<p>No external reviews available</p>`
         }
-        return book.reviews.map(review => 
-            `
+        return `
             <div class="review-item">
                 <div class="review-header">
-                    <h2>${review.title}</h2>
-                    <div class="review-author">${review.author}</div>
+                    <h2>External Book Review</h2>
                 </div>
-                <div class="review-content">${review.value}</div>
+                <div class="review-content">${book.reviews}</div>
             </div>
             `
         ).join('')
