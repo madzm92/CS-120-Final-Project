@@ -234,19 +234,19 @@ export class App {
             </div>
         `;
     
-        // 隐藏当前阅读和图书馆部分
+        // Hide the Current Reading and Library sections
         currentReading.style.display = 'none';
         library.style.display = 'none';
         
-        // 添加搜索结果到页面
+        // Add search results to the page
         contentScrollable.appendChild(searchResults);
     
-        // 添加返回按钮事件监听器
+        // Add a back button event listener
         searchResults.querySelector('.back-to-library').addEventListener('click', () => {
-            // 移除搜索结果
+            // Remove search results
             searchResults.remove();
             
-            // 重新显示当前阅读和图书馆部分
+            // Redisplay the current reading and library sections
             currentReading.style.display = '';
             library.style.display = '';
         });

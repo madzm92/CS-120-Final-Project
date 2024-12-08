@@ -14,7 +14,7 @@ class UtilsObj {
 
     async fetchWithAuth(url, options = {}) {
         console.log('Fetching:', url);
-        this.updateTokens(); // 确保使用最新的 token
+        this.updateTokens(); // make sure to use the latest token
 
         if (!this.accessToken) {
             console.error('No access token available');
