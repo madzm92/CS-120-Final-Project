@@ -11,23 +11,19 @@
     <div class="page-container">
         
         <div class="book-content">
-            
             <div class="book-section">
-                    <div class="back-nav">
-                        <a href="#" class="back-button" id="backButton">BACK</a>
-                    </div>
+                <div class="back-nav">
+                    <a href="#" class="back-button" id="backButton">BACK</a>
+                </div>
+                
                 <div class="book-card" id="bookCard">
                     <!-- render big book card here -->
-                    
                 </div>
-
-                <div class="user-review" id="userReview">
-                    <!-- render user's review on this book, 
-                        including editReviewbtn and changeStatusBtn -->
-                </div>
-
                 
-                <button class="add-to-library-button" id="addToLibraryBtn">ADD TO LIBRARY</button>
+                <div class="center-button-container">
+                    <button class="add-to-library-button" id="addToLibraryBtn">ADD TO LIBRARY</button>
+                </div>
+                
                 <div class="reading-status-container" id="changeStatus">
                     <label for="readingStatus">Reading Status:</label>
                     <select id="readingStatus">
@@ -37,36 +33,32 @@
                         <option value="Completed">Completed</option>
                     </select>
                 </div>
-                
+        
+                <div class="user-review" id="userReview">
+                    <!-- render user's review on this book, 
+                         including editReviewbtn and changeStatusBtn -->
+                </div>
+        
                 <div class="external-reviews" id="externalReviews">
                     <!-- render book reviews from external api here -->
-
                 </div>
-                <button id="viewAllReviews" class="view-all-btn">View All Reviews</button>
-
             </div>
             
             <div class="notes-section" id="notesSection">
                 <div class="notes-header">
                     <div>Notes</div>
-                    <!-- <select id="sortNote">
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                    </select> -->
                 </div>
-
+        
                 <div class="notes-container" id="userNotes">
                     <!-- load notes here -->
-
                 </div>
+                
                 <div class="center-button-container">
                     <button class="add-note-btn" id="addNoteBtn">+</button>
                 </div>
-                
-                
             </div>
-
         </div>
+        
             
     </div>
 

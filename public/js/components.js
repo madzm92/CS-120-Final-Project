@@ -12,6 +12,7 @@ export const components = {
         `;
 
     },
+    
 
     renderCurrentReading(book) {
         return `
@@ -57,7 +58,7 @@ export const components = {
                 </div>
                 <div class="pagebook-title">${book.book_title}</div>
                 <div class="pagebook-author">${book.authors}</div>
-                <div class="pagebook-description">${book.description || 'No description available.'}</div>
+                <div class="pagebook-description">Summary: ${book.description || 'No description available.'}</div>
             </div>
         `
     },
@@ -66,11 +67,13 @@ export const components = {
         return `
             <div class="review-item">
                 <div class="review-header">
-                    <h2>Reviews</h2>
+                    <h2>My Review</h2>
                 </div>
                 <div class="review-content-user">
                 ${book.review || 'You haven\'t written a review yet.'}
-                <br><button id="editReviewBtn">EDIT MY REVIEW</button>
+                    <div class="center-button-container">
+                    <button id="editReviewBtn">EDIT MY REVIEW</button>
+                    </div>
                 </div>
             </div>
         `
@@ -78,7 +81,7 @@ export const components = {
 
     renderExternalReview(book) {
         if (!book.reviews || book.reviews.length === 0) {
-            return `<p>No external reviews available</p>`;
+            return `<div class="center-button-container"><p>No external reviews available.</p></div>`;
         }
     
         return `
@@ -88,7 +91,7 @@ export const components = {
                 </div>
                 <div class="review-content">${book.reviews[0]}</div>
                 ${book.reviews.length > 1 ? 
-                    `<button id="viewAllReviews" class="view-all-btn">View All Reviews (${book.reviews.length})</button>` 
+                    `<button id="viewAllReviews">View All Reviews (${book.reviews.length})</button>` 
                     : ''
                 }
             </div>
