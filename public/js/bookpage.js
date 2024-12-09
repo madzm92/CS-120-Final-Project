@@ -49,12 +49,7 @@ class BookPage {
                 this.bookData = await response.json();
                 return;
             }
-            
-            // if not in db, need fetch from external api
-            // const externalBook = await this.fetchFromExternalAPI();
-            // if (externalBook) {
-            //     this.renderExternalBookPage();
-            // }
+
 
         } catch (error) {
             console.error('Error fetching book details:', error);
@@ -142,7 +137,6 @@ class BookPage {
     }
     
     // request for change user's review on a book
-    // should be ok
     async changeReview() {
         const currentReview = this.bookData.review || '';
 
