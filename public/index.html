@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Book Database</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="overlay" id="overlay"></div>
+        <div class="column-left">
+            <div class="header">
+                <div class="logo">
+                    <a href="index.html"><img src="images/bookworm.png" width="50px"></a>
+                    <button class="logout-button" id="logoutButton">Logout</button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" placeholder="Search...">
+                    <button class="search-button"><img src="images/search.png" width="15px"></button>
+                </div>
+                <div class="menu-toggle">
+                    <button class="menu-button"><img src="images/menu.png" width="25px"></button>
+                </div>
+            </div>
+            
+            
+            <div class="content-scrollable">
+                <!-- when search applied, filter library as search result -->
+
+              <div class="current-reading">
+                  <div class="section-header">
+                      <div class="section-title">Current Reading</div>
+                  </div>
+                  <div class="current-reading-grid" id="currentReadingContainer">
+                      <!-- load current reading -->
+                  </div>
+              </div>
+
+              <div class="library">
+                <div class="section-header">
+                  <div class="section-title">Library</div>
+                  <a href="#" class="view-all">VIEW ALL</a>
+                </div>
+                    <div class="books-grid" id="libraryContainer">
+                        <!-- load library books -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column-right">
+            <div class="info-section">
+                <div class="section-title">What's New</div>
+                <div id="infoContainer">
+                    <!-- load info -->
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <div class="section-header">
+                    <div class="section-title">Recommendations</div>
+                </div>
+                <div class="recommendations-grid" id="recommendationsContainer">
+                    <!-- load recommendations -->
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <script type="module" src="/js/data.js"></script>
+    <script type="module" src="/js/components.js"></script>
+    <script type="module" src="/js/app.js"></script>
+</body>
+</html>

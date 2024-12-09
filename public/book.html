@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="page-container">
+        
+        <div class="book-content">
+            <div class="overlay" id="overlay"></div>
+            
+            <div class="book-section">
+                <div class="book-static-content">
+
+                    <div class="bookpage-nav">
+                        <a href="#" class="back-button" id="backButton">BACK</a>
+                        <a href="#" class="note-toggle-btn" id="noteToggleBtn"><img src="images/menu.png" width="25px"></a>
+                    </div>
+                    
+                </div>
+                
+                <div class="book-scrollable-content">
+                    <div id="bookCard">
+                        <!-- render big book card here -->
+                        
+                    </div>
+
+                    <div class="user-review" id="userReview">
+                        <!-- render user's review on this book, 
+                            including editReviewbtn and changeStatusBtn -->
+                    </div>
+
+                    
+                    <div class="center-button-container">
+                        <button class="add-to-library-button" id="addToLibraryBtn">ADD TO LIBRARY</button>
+                    </div>
+
+                    <div class="reading-status-container" id="changeStatus">
+                        <label for="readingStatus">Reading Status:</label>
+                        <select id="readingStatus">
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="external-reviews" id="externalReviews">
+                        <!-- render book reviews from external api here -->
+
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="notes-section" id="notesSection">
+                <div class="notes-header">
+                    <div>Notes</div>
+                </div>
+        
+                <div class="notes-container" id="userNotes">
+                    <!-- load notes here -->
+                </div>
+                
+                <div class="center-button-container">
+                    <button class="add-note-btn" id="addNoteBtn">+</button>
+                </div>
+            </div>
+        </div>
+        
+            
+    </div>
+
+    <script type="module" src="/js/data.js"></script>
+    <script type="module" src="/js/components.js"></script>
+    <script type="module" src="/js/bookpage.js"></script>
+</body>
+</html>
