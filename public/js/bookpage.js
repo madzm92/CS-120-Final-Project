@@ -436,9 +436,9 @@ class BookPage {
             // need to modify appearance of these buttons
             addToLibraryBtn.style.display = 'none';
             changeStatus.style.display = 'block';
-            noteToggleBtn.style.display = 'block';  // 显示 note toggle 按钮
-            
-            
+            noteToggleBtn.style.display = 'block';  
+            notesSection.classList.toggle('active');
+
             document.getElementById('readingStatus').value = this.bookData.book_status;
             document.getElementById('readingStatus')?.addEventListener('change', async (event) => {
                 try {
