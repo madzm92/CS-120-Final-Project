@@ -49,12 +49,12 @@ class BookPage {
                 this.bookData = await response.json();
                 return;
             }
-
+            
             // if not in db, need fetch from external api
-            const externalBook = await this.fetchFromExternalAPI();
-            if (externalBook) {
-                this.renderExternalBookPage();
-            }
+            // const externalBook = await this.fetchFromExternalAPI();
+            // if (externalBook) {
+            //     this.renderExternalBookPage();
+            // }
 
         } catch (error) {
             console.error('Error fetching book details:', error);
@@ -225,15 +225,15 @@ class BookPage {
             title: 'Add New Note',
             html: `
                 <div class="edit-note-container">
-                    <textarea id="swal-note-content" class="swal2-textarea note-edit-textarea" placeholder="Enter your note"></textarea>
+                    <textarea id="swal-note-content" class="swal2-textarea" placeholder="Enter your note"></textarea>
                     <div id="ps-container" class="ps-edit-container">
                         <div class="ps-input-group">
-                            <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                            <input type="text" class="swal-ps-input" placeholder="PS (optional)">
                             <button type="button" class="delete-ps-btn">×</button>
                         </div>
                     </div>
-                    <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
                 </div>
+                <button id="add-ps" type="button">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
@@ -243,7 +243,7 @@ class BookPage {
                     const psGroup = document.createElement('div');
                     psGroup.className = 'ps-input-group';
                     psGroup.innerHTML = `
-                        <input type="text" class="swal-ps-input swal2-input" placeholder="PS">
+                        <input type="text" class="swal-ps-input" placeholder="PS">
                         <button type="button" class="delete-ps-btn">×</button>
                     `;
                     psContainer.appendChild(psGroup);
@@ -308,7 +308,7 @@ class BookPage {
                     <div id="ps-container" class="ps-edit-container">
                         ${currentPs.map(ps => `
                             <div class="ps-input-group">
-                                <input type="text" class="swal-ps-input swal2-input" value="${ps}">
+                                <input type="text" class="swal-ps-input" value="${ps}">
                                 <button type="button" class="delete-ps-btn">×</button>
                             </div>
                         `).join('')}
@@ -324,8 +324,8 @@ class BookPage {
                     const psGroup = document.createElement('div');
                     psGroup.className = 'ps-input-group';
                     psGroup.innerHTML = `
-                        <input type="text" class="swal-ps-input swal2-input" placeholder="PS">
-                        <button type="button" class="delete-ps-btn">×</button>
+                        <input type="text" class="swal-ps-input" placeholder="PS">
+                        <button type="button" class="delete-ps-btn">x</button>
                     `;
                     psContainer.appendChild(psGroup);
                 });
@@ -418,9 +418,10 @@ class BookPage {
                 window.location.href = '/';
             }
         });
-
+    
         const addToLibraryBtn = document.getElementById('addToLibraryBtn');
         const changeStatus = document.getElementById('changeStatus');
+
         const noteToggleBtn = document.getElementById('noteToggleBtn');
         const notesSection = document.getElementById('notesSection');
         const overlay = document.getElementById('overlay');
@@ -432,10 +433,10 @@ class BookPage {
             this.showAllReviews();
         });
         if (this.isInUserLibrary) {
-            // if book in library_user, some actions are not avaliable
-            // need to modify appearance of these buttons
+            // Book is in the user's library
             addToLibraryBtn.style.display = 'none';
             changeStatus.style.display = 'block';
+
             noteToggleBtn.style.display = 'block';  
             notesSection.classList.toggle('active');
 
@@ -447,10 +448,12 @@ class BookPage {
                     console.error('Error changing status:', error);
                 }
             });
-            // edit review
+    
+            // Edit review
             document.getElementById('editReviewBtn')?.addEventListener('click', () => {
                 this.changeReview();
             });
+    
 
             // note toggle            
             noteToggleBtn?.addEventListener('click', () => {
@@ -467,15 +470,16 @@ class BookPage {
             // add note
             const addNoteBtn = document.getElementById('addNoteBtn');
             addNoteBtn.addEventListener('click', () => this.addNote());
-            // view and edit note
+    
+            // View and edit note
             document.getElementById('userNotes').addEventListener('click', async (e) => {
                 const noteCard = e.target.closest('.note-card');
                 if (!noteCard) return;
-        
+    
                 const noteId = noteCard.dataset.noteId;
                 const content = decodeURIComponent(noteCard.dataset.noteContent);
                 const ps = JSON.parse(noteCard.dataset.notePs);
-        
+    
                 const result = await Swal.fire({
                     title: 'Note Options',
                     showDenyButton: true,
@@ -489,24 +493,29 @@ class BookPage {
                         popup: 'edit-note-modal-popup'
                     }
                 });
-        
+    
                 if (result.isConfirmed) {
                     await this.editNote(noteId, content, ps);
                 } else if (result.isDenied) {
                     await this.deleteNote(noteId);
                 }
             });
-            
         } else {
-            // if not, show different actions
+            // Book is not in the user's library
             addToLibraryBtn.style.display = 'block';
             changeStatus.style.display = 'none';
+
             notesSection.style.display = "none";
             document.getElementById('addToLibraryBtn')?.addEventListener('click', () => {
                 this.addToUserLibrary();
             });
         }
-    }
+    
+        // Show all external reviews
+        document.getElementById('viewAllReviews')?.addEventListener('click', () => {
+            this.showAllReviews();
+        });
+    }    
 
 
 }
