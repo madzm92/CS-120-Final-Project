@@ -6,7 +6,6 @@ export class App {
     constructor() {
         this.accessToken = localStorage.getItem('accessToken');
         this.refreshToken = localStorage.getItem('refreshToken');
-        
         // Only initialize if we're not on login or register page
         const currentPath = window.location.pathname;
         if (currentPath !== '/login.html' && currentPath !== '/register.html') {
@@ -188,8 +187,8 @@ export class App {
         try {
             const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response) return;
-            
             const results = await response.json();
+            sessionStorage.setItem('lastSearch', searchTerm);
             this.showSearchResults(results);
         } catch (error) {
             console.error('Search failed:', error);
@@ -301,7 +300,7 @@ export class App {
 
     setupEventListeners() {
         // sidebar toggle event listener
-        const menuToggle = document.querySelector('.menu-toggle-button');
+        const menuToggle = document.querySelector('.menu-button');
         const columnRight = document.querySelector('.column-right');
         
         menuToggle?.addEventListener('click', () => {

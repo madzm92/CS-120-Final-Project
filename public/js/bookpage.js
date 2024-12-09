@@ -158,6 +158,8 @@ class BookPage {
             showCancelButton: true,
             inputPlaceholder: 'Write your review here...',
             confirmButtonText: 'Save',
+            width: '90%',  
+            padding: '2em', 
             preConfirm: (review) => {
                 if (!review) {
                     Swal.showValidationMessage('Review cannot be empty!');
@@ -202,11 +204,9 @@ class BookPage {
             return;
         }
     
-        const reviewsHtml = this.bookData.reviews.map(review => `
+        const reviewsHtml = this.bookData.reviews.map(reviewText => `
             <div class="review-item">
-                <h3>${review.title}</h3>
-                <div class="review-author">${review.author}</div>
-                <div class="review-content">${review.value}</div>
+                <div class="review-content">${reviewText}</div>
             </div>
         `).join('<hr>');
     
@@ -217,7 +217,8 @@ class BookPage {
             showCloseButton: true,
             showConfirmButton: false,
             customClass: {
-                container: 'all-reviews-modal'
+                container: 'all-reviews-modal',
+                htmlContainer: 'reviews-modal-content'
             }
         });
     }
@@ -227,28 +228,36 @@ class BookPage {
         const { value: formValues } = await Swal.fire({
             title: 'Add New Note',
             html: `
-                <textarea id="swal-note-content" class="swal2-textarea" placeholder="Enter your note"></textarea>
-                <div id="ps-container">
-                    <input type="text" class="swal-ps-input" placeholder="PS (optional)">
+                <div class="edit-note-container">
+                    <textarea id="swal-note-content" class="swal2-textarea note-edit-textarea" placeholder="Enter your note"></textarea>
+                    <div id="ps-container" class="ps-edit-container">
+                        <div class="ps-input-group">
+                            <input type="text" class="swal-ps-input swal2-input" placeholder="PS (optional)">
+                            <button type="button" class="delete-ps-btn">×</button>
+                        </div>
+                    </div>
+                    <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
                 </div>
-                <button id="add-ps" type="button">Add Another PS</button>
+                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
-            customClass: {
-                title: 'swal-title',
-                confirmButton: 'swal-confirm-button',
-                cancelButton: 'swal-cancel-button'
-            },
             didOpen: () => {
-                // Add event listener for "Add Another PS" button
                 document.getElementById('add-ps').addEventListener('click', () => {
                     const psContainer = document.getElementById('ps-container');
-                    const newPsInput = document.createElement('input');
-                    newPsInput.type = 'text';
-                    newPsInput.className = 'swal-ps-input swal2-input';
-                    newPsInput.placeholder = 'PS (optional)';
-                    psContainer.appendChild(newPsInput);
+                    const psGroup = document.createElement('div');
+                    psGroup.className = 'ps-input-group';
+                    psGroup.innerHTML = `
+                        <input type="text" class="swal-ps-input swal2-input" placeholder="PS">
+                        <button type="button" class="delete-ps-btn">×</button>
+                    `;
+                    psContainer.appendChild(psGroup);
+                });
+            
+                document.getElementById('ps-container').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-ps-btn')) {
+                        e.target.closest('.ps-input-group').remove();
+                    }
                 });
             },
             preConfirm: () => {
@@ -256,13 +265,13 @@ class BookPage {
                 const psInputs = document.querySelectorAll('.swal-ps-input');
                 const psArray = Array.from(psInputs)
                     .map(input => input.value.trim())
-                    .filter(ps => ps); // Filter out empty inputs
-    
+                    .filter(ps => ps);
+        
                 if (!content) {
                     Swal.showValidationMessage('Note content cannot be empty!');
                     return false;
                 }
-    
+        
                 return {
                     content: content,
                     ps: psArray
@@ -403,8 +412,23 @@ class BookPage {
     }
 
     setupEventListeners() {
+        // back button nav to prev search 
+        document.getElementById('backButton').addEventListener('click', (e) => {
+            e.preventDefault();
+            const lastSearch = sessionStorage.getItem('lastSearch');
+            if (lastSearch) {
+                window.location.href = `/?search=${encodeURIComponent(lastSearch)}`;
+            } else {
+                window.location.href = '/';
+            }
+        });
+
         const addToLibraryBtn = document.getElementById('addToLibraryBtn');
         const changeStatus = document.getElementById('changeStatus');
+        // show all external reviews
+        document.getElementById('viewAllReviews')?.addEventListener('click', () => {
+            this.showAllReviews();
+        });
         if (this.isInUserLibrary) {
             // if book in library_user, some actions are not avaliable
             // need to modify appearance of these buttons
@@ -423,10 +447,7 @@ class BookPage {
             document.getElementById('editReviewBtn')?.addEventListener('click', () => {
                 this.changeReview();
             });
-            // show all external reviews
-            document.getElementById('viewAllReviews')?.addEventListener('click', () => {
-                this.showAllReviews();
-            });
+
             // add note
             const addNoteBtn = document.getElementById('addNoteBtn');
             addNoteBtn.addEventListener('click', () => this.addNote());
@@ -444,7 +465,13 @@ class BookPage {
                     showDenyButton: true,
                     showCancelButton: true,
                     confirmButtonText: 'Edit',
-                    denyButtonText: 'Delete'
+                    denyButtonText: 'Delete',
+                    width: '80%',
+                    padding: '1em',
+                    customClass: {
+                        container: 'edit-note-modal-container',
+                        popup: 'edit-note-modal-popup'
+                    }
                 });
         
                 if (result.isConfirmed) {
