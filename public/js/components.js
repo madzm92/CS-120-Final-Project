@@ -99,7 +99,6 @@ export const components = {
     },
 
     renderNote(note) {
-        note.ps = JSON.parse(note.ps);
         let psSpans = '';
         if (Array.isArray(note.ps) && note.ps.length > 0) {
             psSpans = note.ps.map(ps => `<div class="note-ps">${ps}</div>`).join('');

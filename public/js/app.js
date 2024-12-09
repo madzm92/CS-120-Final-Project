@@ -18,23 +18,36 @@ export class App {
             if ((window.location.pathname !== '/login.html') && (window.location.pathname !== '/register.html')) {
                 window.location.href = '/login.html';
             }
-            console.log("no accessToken")
             return;
         }
+
         try {
             await Promise.all([
                 this.fetchUserLibrary(),
                 this.fetchInfo(),
                 this.fetchRecommendations()
             ]);
-            this.loadLibrary();
-            this.loadCurrentReading();
-            this.loadInfo();
-            this.loadRecommendations();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchTerm = urlParams.get('search');
+            
+            if (searchTerm) {
+                const searchInput = document.querySelector('.search-bar input');
+                if (searchInput) {
+                    searchInput.value = searchTerm;
+                    await this.performSearch(searchTerm);
+                }
+            } else {   
+                this.loadLibrary();
+                this.loadCurrentReading();
+            }
+                this.loadInfo();
+                this.loadRecommendations();
+            
+            
             this.setupEventListeners();
         } catch (error) {
             console.error('Initialization error:', error);
-            // If there's an auth error during initialization, redirect to login
             if (error.status === 401) {
                 window.location.href = '/login.html';
             }
@@ -188,7 +201,8 @@ export class App {
             const response = await utilsObj.fetchWithAuth(`/api/books/search?term=${encodeURIComponent(searchTerm)}`);
             if (!response) return;
             const results = await response.json();
-            sessionStorage.setItem('lastSearch', searchTerm);
+            const newUrl = `${window.location.pathname}?search=${encodeURIComponent(searchTerm)}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
             this.showSearchResults(results);
         } catch (error) {
             console.error('Search failed:', error);
@@ -213,7 +227,8 @@ export class App {
         // add search result content
         searchResults.innerHTML = `
             <div class="section-header">
-                <button class="back-to-library">BACK TO LIBRARY</button>
+                <div class="section-title">Search Results</div>
+                <button class="back-to-library">Back to Library</button>
             </div>
             <div class="personal-results">
                 <div class="section-header">
@@ -302,12 +317,25 @@ export class App {
         // sidebar toggle event listener
         const menuToggle = document.querySelector('.menu-button');
         const columnRight = document.querySelector('.column-right');
-        
+        document.getElementById('logoutButton')?.addEventListener('click', () => {
+            this.logout();
+        });
+
         menuToggle?.addEventListener('click', () => {
+            const overlay = document.getElementById('overlay');
             columnRight.classList.toggle('active');
+            overlay.classList.toggle('active');
             if (window.innerWidth <= 768) {
                 document.body.style.overflow = columnRight.classList.contains('active') ? 'hidden' : 'auto';
             }
+        });
+
+        // overlay
+        document.getElementById('overlay').addEventListener('click', () => {
+            const columnRight = document.querySelector('.column-right');
+            const overlay = document.getElementById('overlay');
+            columnRight.classList.remove('active');
+            overlay.classList.remove('active');
         });
 
         // route to book page by clicking book-card or current-reading-card or recommendation-card
@@ -315,7 +343,9 @@ export class App {
             const bookCard = e.target.closest('.book-card, .current-reading-card, .recommendation-card');
             if (bookCard) {
                 const bookId = bookCard.dataset.bookId;
-                window.location.href = `/book.html?id=${bookId}`;
+                const searchParam = new URLSearchParams(window.location.search).get('search');
+                const url = `/book.html?id=${bookId}${searchParam ? `&from_search=${searchParam}` : ''}`;
+                window.location.href = url;
             }
         });
 
