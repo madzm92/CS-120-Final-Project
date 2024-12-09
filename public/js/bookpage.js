@@ -142,7 +142,7 @@ class BookPage {
     }
     
     // request for change user's review on a book
-    // ai generated for better appearance
+    // should be ok
     async changeReview() {
         const currentReview = this.bookData.review || '';
 

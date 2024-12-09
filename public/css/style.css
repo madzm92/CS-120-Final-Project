@@ -74,11 +74,12 @@ button:hover {
     flex-direction: column;
     justify-content: space-between;
     min-height: 5rem;
-    margin-left: 1.5rem;
+    margin-bottom: 0;
+    /* margin: 1rem 1.5rem; */
 }
 
 #editReviewBtn {
-    margin: 0 auto;
+    margin: 0.5rem auto 0rem auto;
 }
 
 #viewAllReviews {
@@ -295,12 +296,18 @@ button:hover {
 
 .pagebook-cover {
     width: 50%;
+    max-width: 700px;
     overflow: hidden;
 }
 
 .pagebook-cover img {
     width: 100%;
     object-fit: cover;
+}
+
+.pagebook-description {
+    width: 75%;
+    max-width: 900px;
 }
 
 
@@ -744,17 +751,33 @@ button:hover {
 .ps-input-group {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    background: #f3f4f6;
     padding: 0.5rem;
-    height: auto;
+    border-radius: 0.5rem;
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.swal-ps-input {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
 }
 
 .delete-ps-btn {
-    background-color: #ef4444;
-    color: white;
-}
-
-.delete-ps-btn:hover {
-    background-color: #dc2626;
+    width: 1.5rem;
+    height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
 }
 
 /* change reading status */
@@ -791,14 +814,12 @@ button:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    width: 30%;
-    height: auto;     
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5rem;
+    margin: 1rem auto;
+    width: 90%;
+    justify-content: center;
+    padding: 1rem;
     background: #f9fafb;
     border-radius: 0.75rem;
-    box-sizing: border-box; 
 }
 
 .swal2-popup {
@@ -819,20 +840,23 @@ button:hover {
 
 .swal2-textarea {
     width: 90% !important;
-    min-height: 100px !important;
+    min-height: 400px !important;
     font-size: 1rem;
     resize: vertical;
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    padding: 1rem !important;
+    line-height: 1.2;
 }
 
 .ps-input-group {
     display: flex;
-    width: 100%;
-    height: auto;
     align-items: center;
-    background: white;
+    gap: 0.5rem;
+    background: #f3f4f6;
+    padding: 0.5rem;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    min-width: 120px;
+    max-width: 200px;
 }
 
 #swal-note-content {
@@ -848,10 +872,12 @@ button:hover {
 }
 
 .swal-ps-input {
-    width: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    font-size: 0.75rem;
+    flex: 1;
+    min-width: 80px;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
 }
 
 .swal-title {
@@ -881,10 +907,15 @@ button:hover {
 }
 
 .delete-ps-btn {
-    width: 2rem;
-    height: 2rem; 
-    background-color: #dc2626; 
-    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
 }
 
 .delete-ps-btn:hover {
@@ -899,10 +930,11 @@ button:hover {
 }
 
 .review-item {
-    padding: 1.5rem;
+    padding: 1.5rem 2.5rem 1rem 2.5rem ;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
-    margin: 1rem 0;
+    margin-bottom: 0rem;
+    /* margin: 0.75rem; */
 }
 
 .review-content {
@@ -962,4 +994,21 @@ hr {
         height: 100vh;
         z-index: 1000;
     }
+}
+
+.add-ps-btn {
+    background-color: #448FF0;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    margin: 0.5rem auto;
+    display: block;
+    width: auto;
+}
+
+.add-ps-btn:hover {
+    background-color: #2563eb;
 }
