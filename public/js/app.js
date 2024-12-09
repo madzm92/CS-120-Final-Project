@@ -21,6 +21,18 @@ export class App {
             console.log("no accessToken")
             return;
         }
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchTerm = urlParams.get('search');
+    
+        if (searchTerm) {
+            const searchInput = document.querySelector('.search-bar input');
+            if (searchInput) {
+                searchInput.value = searchTerm;
+                await this.performSearch(searchTerm);
+            }
+        } else {
+            await this.loadLibrary();
+        }
         try {
             await Promise.all([
                 this.fetchUserLibrary(),
@@ -213,7 +225,8 @@ export class App {
         // add search result content
         searchResults.innerHTML = `
             <div class="section-header">
-                <button class="back-to-library">BACK TO LIBRARY</button>
+                <div class="section-title">Search Results</div>
+                <button class="back-to-library">Back to Library</button>
             </div>
             <div class="personal-results">
                 <div class="section-header">

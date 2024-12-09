@@ -62,10 +62,6 @@ class BookPage {
         }
     }
 
-    // TODO: fetch from external api
-    async fetchFromExternalAPI() {
-
-    }
 
     loadBook() {
         const bookCard = document.getElementById('bookCard');
@@ -238,7 +234,6 @@ class BookPage {
                     </div>
                     <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
                 </div>
-                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
@@ -485,7 +480,7 @@ class BookPage {
             // if not, show different actions
             addToLibraryBtn.style.display = 'block';
             changeStatus.style.display = 'none';
-            document.getElementById("notesSection").display = "none";
+            document.getElementById("notesSection").style.display = "none";
             document.getElementById('addToLibraryBtn')?.addEventListener('click', () => {
                 this.addToUserLibrary();
             });
