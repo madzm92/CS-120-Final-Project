@@ -410,9 +410,10 @@ class BookPage {
         // back button nav to prev search 
         document.getElementById('backButton').addEventListener('click', (e) => {
             e.preventDefault();
-            const lastSearch = sessionStorage.getItem('lastSearch');
-            if (lastSearch) {
-                window.location.href = `/?search=${encodeURIComponent(lastSearch)}`;
+            const params = new URLSearchParams(window.location.search);
+            const fromSearch = params.get('from_search');
+            if (fromSearch) {
+                window.location.href = `/?search=${encodeURIComponent(fromSearch)}`;
             } else {
                 window.location.href = '/';
             }
@@ -420,6 +421,12 @@ class BookPage {
 
         const addToLibraryBtn = document.getElementById('addToLibraryBtn');
         const changeStatus = document.getElementById('changeStatus');
+        const noteToggleBtn = document.getElementById('noteToggleBtn');
+        const notesSection = document.getElementById('notesSection');
+        const overlay = document.getElementById('overlay');
+
+        noteToggleBtn.style.display = 'none';
+
         // show all external reviews
         document.getElementById('viewAllReviews')?.addEventListener('click', () => {
             this.showAllReviews();
@@ -429,6 +436,8 @@ class BookPage {
             // need to modify appearance of these buttons
             addToLibraryBtn.style.display = 'none';
             changeStatus.style.display = 'block';
+            noteToggleBtn.style.display = 'block';  // 显示 note toggle 按钮
+            
             
             document.getElementById('readingStatus').value = this.bookData.book_status;
             document.getElementById('readingStatus')?.addEventListener('change', async (event) => {
@@ -441,6 +450,18 @@ class BookPage {
             // edit review
             document.getElementById('editReviewBtn')?.addEventListener('click', () => {
                 this.changeReview();
+            });
+
+            // note toggle            
+            noteToggleBtn?.addEventListener('click', () => {
+                notesSection.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+
+            // click overlay to close notes
+            overlay?.addEventListener('click', () => {
+                notesSection.classList.remove('active');
+                overlay.classList.remove('active');
             });
 
             // add note
@@ -480,7 +501,7 @@ class BookPage {
             // if not, show different actions
             addToLibraryBtn.style.display = 'block';
             changeStatus.style.display = 'none';
-            document.getElementById("notesSection").style.display = "none";
+            notesSection.style.display = "none";
             document.getElementById('addToLibraryBtn')?.addEventListener('click', () => {
                 this.addToUserLibrary();
             });
