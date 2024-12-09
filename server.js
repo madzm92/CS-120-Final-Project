@@ -296,7 +296,7 @@ app.post('/api/books/library', auth, async (req, res) => {
 app.put('/api/books/status', auth, async (req, res) => {
     try {
         const { bookId, newStatus } = req.body;
-        const [result] = await queryWithRetry(
+        const result = await queryWithRetry(
             'UPDATE library_personal SET book_status = ? WHERE user_id = ? AND book_id = ?',
             [newStatus, req.user.user_id, bookId]
         );
