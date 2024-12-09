@@ -1,7 +1,7 @@
 // configure database here
 require('dotenv').config();
 
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
     user: process.env.DB_USER,
@@ -10,17 +10,8 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
     charset: 'utf8mb4',
-    connectionLimit: 5
+    connectionLimit: 5,
+    collation: 'utf8mb4_unicode_ci'
 });
-
-// Promisify pool query to use async/await
-pool.queryPromise = function (sql, values) {
-    return new Promise((resolve, reject) => {
-        pool.query(sql, values, (error, results) => {
-            if (error) reject(error);
-            resolve(results);
-        });
-    });
-};
 
 module.exports = pool;
