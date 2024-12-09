@@ -1,19 +1,18 @@
 require('dotenv').config();
-const mysql = require('mysql2/promise');
 const bcrypt = require("bcrypt");
 const express = require("express");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const auth = require("./middleware/auth");
-const pool = require('./db/config');
+const { queryWithRetry } = require('./db/config'); // Import query utility
 const app = express();
-app.use(express.json()); // middleware to parse all json requests to req
 
-// testing purpose
+app.use(express.json()); // Middleware to parse all JSON requests to req
+
+// Serve static files (for testing purposes)
 app.use(express.static('public'));
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: './public' });
 });
-
 
 // user login, verify info on server, then send access token
 app.post('/api/user/login', async (req, res) => {
@@ -22,33 +21,38 @@ app.post('/api/user/login', async (req, res) => {
         return res.status(400).json({ message: 'Username and password are required' });
     }
     try {
-        const [result] = await pool.execute(
+        // Query user information
+        const result = await queryWithRetry(
             'SELECT * FROM user_info WHERE username = ?',
             [username]
         );
         if (!result || result.length === 0) {
-            return res.status(401).json({ message: 'User does not exist' })
+            return res.status(401).json({ message: 'User does not exist' });
         }
+
+        // Verify password
         if (await bcrypt.compare(password, result[0].password)) {
-            const user = result[0]
-            // create jwt access token
+            const user = result[0];
+            
+            // Create JWT tokens
             const accessToken = jwt.sign(
                 { user_id: user.user_id },
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '5h' }
             );
-
             const refreshToken = jwt.sign(
                 { user_id: user.user_id },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: '7d' }
-            )
-            // store refresh token in database
-            await pool.execute(
+            );
+
+            // Store refresh token in database
+            await queryWithRetry(
                 'INSERT INTO refresh_tokens (user_id, refresh_token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))',
                 [user.user_id, refreshToken]
-            )
-            res.json({ 
+            );
+
+            res.json({
                 message: 'Login successful',
                 accessToken,
                 refreshToken
@@ -71,7 +75,7 @@ app.post('/api/token/refresh', async (req, res) => {
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
         // check if refresh token is valid in database
-        const [rows] = await pool.execute(
+        const rows = await queryWithRetry(
             'SELECT * FROM refresh_tokens WHERE refresh_token = ? AND user_id = ? AND expires_at > NOW()',
             [refreshToken, decoded.user_id]
         );
@@ -95,7 +99,7 @@ app.post('/api/token/refresh', async (req, res) => {
 app.post('/api/user/logout', auth, async (req, res) => {
     try {
         const refreshToken = req.body.refreshToken
-        await pool.execute(
+        await queryWithRetry(
             'DELETE FROM refresh_tokens WHERE refresh_token = ?',
             [refreshToken]
         )
@@ -114,7 +118,7 @@ app.post('/api/user/register', async (req, res) => {
     }
     try {
         // Check if username already exists
-        const [existingRows] = await pool.execute(
+        const existingRows = await queryWithRetry(
             'SELECT * FROM user_info WHERE username = ?',
             [username]
         );
@@ -123,7 +127,7 @@ app.post('/api/user/register', async (req, res) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10)
         // Create new user
-        const result = await pool.execute(
+        const result = await queryWithRetry(
             'INSERT INTO user_info (username, password) VALUES (?, ?)',
             [username, hashedPassword]
         );
@@ -144,7 +148,7 @@ app.get('/api/books/library', auth, async (req, res) => {
 
         console.log('Fetching library for user:', req.user.user_id);
         
-        const [books] = await pool.execute(
+        const books = await queryWithRetry(
             `SELECT lg.*, 
                     lp.book_status, 
                     lp.review, 
@@ -178,7 +182,7 @@ app.get('/api/books/library', auth, async (req, res) => {
 // fetch info section
 app.get('/api/info', async (req, res) => {
     try {
-        const [info] = await pool.execute(
+        const info = await queryWithRetry(
             'SELECT * FROM info ORDER BY created_at DESC LIMIT 5'
         );
         res.json(info);
@@ -191,7 +195,7 @@ app.get('/api/info', async (req, res) => {
 // fetch recommendations based on user's library
 app.get('/api/books/recommendations', auth, async (req, res) => {
     try {
-        const [recommendations] = await pool.execute(
+        const recommendations = await queryWithRetry(
             `SELECT DISTINCT lg.*, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
              FROM library_general lg
              LEFT JOIN authors a ON lg.isbn = a.isbn
@@ -231,7 +235,7 @@ app.get('/api/books/general/:id', async (req, res) => {
         const bookId = req.params.id;
         console.log('Fetching book with ID:', bookId);
         
-        const [rows] = await pool.execute(
+        const rows = await queryWithRetry(
             `SELECT lg.*, 
                     GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS authors,
                     GROUP_CONCAT(DISTINCT br.review_text) AS reviews
@@ -248,7 +252,7 @@ app.get('/api/books/general/:id', async (req, res) => {
             return res.status(404).json({ message: 'Book not found' });
         }
 
-        const [reviewsResult] = await pool.execute(
+        const reviewsResult = await queryWithRetry(
             `SELECT review_text as reviews
              FROM book_reviews
              WHERE isbn = ?`,
@@ -277,7 +281,7 @@ app.get('/api/books/general/:id', async (req, res) => {
 app.post('/api/books/library', auth, async (req, res) => {
     try {
         const book = req.body.book;
-        await pool.execute(
+        await queryWithRetry(
             'INSERT INTO library_personal (user_id, book_id, book_status) VALUES (?, ?, ?)',
             [req.user.user_id, book.book_id, "Not Started"]
         );
@@ -292,7 +296,7 @@ app.post('/api/books/library', auth, async (req, res) => {
 app.put('/api/books/status', auth, async (req, res) => {
     try {
         const { bookId, newStatus } = req.body;
-        const [result] = await pool.execute(
+        const result = await queryWithRetry(
             'UPDATE library_personal SET book_status = ? WHERE user_id = ? AND book_id = ?',
             [newStatus, req.user.user_id, bookId]
         );
@@ -312,7 +316,7 @@ app.put('/api/books/status', auth, async (req, res) => {
 app.put('/api/books/review', auth, async (req, res) => {
     try {
         const { bookId, review } = req.body;
-        const [result] = await pool.execute(
+        const result = await queryWithRetry(
             'UPDATE library_personal SET review = ? WHERE user_id = ? AND book_id = ?',
             [review, req.user.user_id, bookId]
         );
@@ -339,7 +343,7 @@ app.get('/api/books/search', auth, async (req, res) => {
         console.log('Searching for term:', searchTerm);
 
         // Search in user's personal library
-        const [personalResults] = await pool.execute(
+        const personalResults = await queryWithRetry(
             `SELECT lg.*, lp.book_status, lp.review, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
             FROM library_general lg
             JOIN library_personal lp ON lg.book_id = lp.book_id
@@ -356,7 +360,7 @@ app.get('/api/books/search', auth, async (req, res) => {
         );
             
         // Search in general library (excluding books in personal library)
-        const [generalResults] = await pool.execute(
+        const generalResults = await queryWithRetry(
             `SELECT lg.*, GROUP_CONCAT(a.author_name SEPARATOR ', ') as authors
              FROM library_general lg
              LEFT JOIN authors a ON lg.isbn = a.isbn
@@ -391,7 +395,7 @@ app.get('/api/books/search', auth, async (req, res) => {
 // fetch notes
 app.get('/api/books/:bookId/notes', auth, async (req, res) => {
     try {
-        const [notes] = await pool.execute(
+        const notes = await queryWithRetry(
             `SELECT note_id, note_text, ps 
              FROM book_notes 
              WHERE book_id = ? AND user_id = ?
@@ -437,7 +441,7 @@ app.post('/api/books/:bookId/notes', auth, async (req, res) => {
             return res.status(400).json({ message: '`ps` must be an array' });
         }
 
-        const [result] = await pool.execute(
+        const result = await queryWithRetry(
             `INSERT INTO book_notes (book_id, user_id, note_text, ps) 
              VALUES (?, ?, ?, ?)`,
             [req.params.bookId, req.user.user_id, content, JSON.stringify(ps)]
@@ -459,7 +463,7 @@ app.put('/api/books/:bookId/notes/:noteId', auth, async (req, res) => {
             return res.status(400).json({ message: '`ps` must be an array' });
         }
 
-        const [result] = await pool.execute(
+        const result = await queryWithRetry(
             `UPDATE book_notes 
              SET note_text = ?, ps = ?
              WHERE note_id = ? AND book_id = ? AND user_id = ?`,
@@ -484,7 +488,7 @@ app.put('/api/books/:bookId/notes/:noteId', auth, async (req, res) => {
 // Delete note
 app.delete('/api/books/:bookId/notes/:noteId', auth, async (req, res) => {
     try {
-        const [result] = await pool.execute(
+        const result = await queryWithRetry(
             `DELETE FROM book_notes 
              WHERE note_id = ? AND book_id = ? AND user_id = ?`,
             [req.params.noteId, req.params.bookId, req.user.user_id]
@@ -507,7 +511,7 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 async function testDbConnection() {
     try {
-        const [result] = await pool.execute('SELECT NOW()');
+        const result = await queryWithRetry('SELECT NOW()');
         console.log('Database connected successfully');
     } catch (err) {
         console.error('Database connection error:', err);

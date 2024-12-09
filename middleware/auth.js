@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../db/config');
+const { queryWithRetry } = require('../db/config');
 
 const auth = async (req, res, next) => {
     try {
@@ -13,7 +13,7 @@ const auth = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         
         // 验证用户是否存在
-        const [rows] = await pool.execute(
+        const rows = await queryWithRetry(
             'SELECT user_id FROM user_info WHERE user_id = ?',
             [decoded.user_id]
         );
