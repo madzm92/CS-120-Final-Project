@@ -213,8 +213,7 @@ export class App {
         // add search result content
         searchResults.innerHTML = `
             <div class="section-header">
-                <div class="section-title">Search Results</div>
-                <button class="back-to-library">Back to Library</button>
+                <button class="back-to-library">BACK TO LIBRARY</button>
             </div>
             <div class="personal-results">
                 <div class="section-header">

@@ -238,15 +238,10 @@ class BookPage {
                     </div>
                     <button id="add-ps" type="button" class="add-ps-btn">Add Another PS</button>
                 </div>
+                <button id="add-ps" type="button" class="swal2-confirm swal2-styled" style="margin-top: 10px;">Add Another PS</button>
             `,
             focusConfirm: false,
             showCancelButton: true,
-            width: '80%',
-            padding: '1em',
-            customClass: {
-                container: 'edit-note-modal-container',
-                popup: 'edit-note-modal-popup'
-            },
             didOpen: () => {
                 document.getElementById('add-ps').addEventListener('click', () => {
                     const psContainer = document.getElementById('ps-container');
