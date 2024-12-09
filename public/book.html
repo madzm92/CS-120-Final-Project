@@ -11,38 +11,47 @@
     <div class="page-container">
         
         <div class="book-content">
+            <div class="overlay" id="overlay"></div>
             
             <div class="book-section">
-                    <div class="back-nav">
+                <div class="book-static-content">
+
+                    <div class="bookpage-nav">
                         <a href="#" class="back-button" id="backButton">BACK</a>
+                        <a href="#" class="note-toggle-btn" id="noteToggleBtn"><img src="images/menu.png" width="25px"></a>
                     </div>
-                <div class="book-card" id="bookCard">
-                    <!-- render big book card here -->
                     
                 </div>
-
-                <div class="user-review" id="userReview">
-                    <!-- render user's review on this book, 
-                        including editReviewbtn and changeStatusBtn -->
-                </div>
-
                 
-                <button class="add-to-library-button" id="addToLibraryBtn">ADD TO LIBRARY</button>
-                <div class="reading-status-container" id="changeStatus">
-                    <label for="readingStatus">Reading Status:</label>
-                    <select id="readingStatus">
-                        <option value="">Select Status</option>
-                        <option value="Not Started">Not Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </div>
-                
-                <div class="external-reviews" id="externalReviews">
-                    <!-- render book reviews from external api here -->
+                <div class="book-scrollable-content">
+                    <div class="book-card" id="bookCard">
+                        <!-- render big book card here -->
+                        
+                    </div>
 
+                    <div class="user-review" id="userReview">
+                        <!-- render user's review on this book, 
+                            including editReviewbtn and changeStatusBtn -->
+                    </div>
+
+                    
+                    <button class="add-to-library-button" id="addToLibraryBtn">ADD TO LIBRARY</button>
+                    <div class="reading-status-container" id="changeStatus">
+                        <label for="readingStatus">Reading Status:</label>
+                        <select id="readingStatus">
+                            <option value="">Select Status</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="external-reviews" id="externalReviews">
+                        <!-- render book reviews from external api here -->
+
+                    </div>
                 </div>
-                <button id="viewAllReviews" class="view-all-btn">View All Reviews</button>
+
 
             </div>
             
