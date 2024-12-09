@@ -201,14 +201,16 @@ button:hover {
 
 .current-reading-card {
     flex: 0 0 25vw;
-    max-width: 240px;
-    min-width: 150px;
+    max-width: 220px;
+    min-width: 140px;
     display: flex;
     flex-direction: column;
     cursor: pointer;
 }
 
+
 .current-reading-cover img {
+    aspect-ratio: 3/4;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -235,23 +237,28 @@ button:hover {
     padding: 1.25rem 0;
     display: grid;
     width: 97.5%;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.5rem;
 }
 
 .book-card {
     margin-bottom: 1rem;
+    padding: 1rem 1rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
     text-align: center;
     cursor: pointer;
+    border-radius: 1rem;
+    align-items: center;
+    transition: background-color 0.1s;
+}
 
+.book-card:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .book-cover {
-    /*todo: let image ratio to determine container ratio*/
-    aspect-ratio: 2/3;
+    aspect-ratio: 3/4;
     width: 100%;
     height: 100%;
     border-radius: 0.5rem;
@@ -276,6 +283,45 @@ button:hover {
 .book-author {
     color: #808080;
     font-size: 1rem;
+}
+/* on smaller screen, show book-card horizontally */
+@media (max-width: 768px) {
+    .books-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .book-card {
+        display: flex;
+        flex-direction: row;
+        padding: 0.5rem 0.5rem;
+        margin: 0 0;
+        gap: 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        align-items: center;
+        text-align: left;
+    }
+
+
+    .book-cover {
+        aspect-ratio: 2/3;
+        flex: 0 0 160px;
+        height: 220px;
+        margin-bottom: 0;
+    }
+
+    .book-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .book-title {
+        margin: 0 0 0.5rem 0;
+    }
 }
 
 /* Right Column */
@@ -874,7 +920,6 @@ hr {
 .overlay {
     display: none;
 }
-
 @media (max-width: 768px) {
     .overlay {
         position: fixed;
@@ -886,11 +931,9 @@ hr {
         z-index: 999;
         display: none;
     }
-
     .overlay.active {
         display: block;
     }
-
     .notes-section.active {
         position: fixed;
         right: 0;
