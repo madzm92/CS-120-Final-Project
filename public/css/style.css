@@ -732,22 +732,14 @@ button:hover {
     margin-bottom: 0.75rem;
     display: -webkit-box;
     display: -moz-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
     -webkit-box-orient: vertical;
     box-orient: vertical;
     overflow: hidden;
     position: relative;
     padding-right: 1em;
 }
-
-/* .note-content::after {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    background: white;
-    padding-left: 0.5em;
-} */
 
 .note-ps-container {
     display: flex;
